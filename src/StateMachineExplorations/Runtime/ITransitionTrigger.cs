@@ -1,6 +1,6 @@
 ﻿namespace Morgados.StateMachine.Runtime
 {
-    public interface TransitionTrigger
+    public interface ITransitionTrigger
     {
         string Name { get; }
     }

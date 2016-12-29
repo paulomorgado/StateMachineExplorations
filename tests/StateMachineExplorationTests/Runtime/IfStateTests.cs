@@ -13,8 +13,8 @@
         {
             var logger = new TestLogger();
 
-            var trueTransition = new Transition("True", Mock.Of<TransitionTarget>(), null, null);
-            var elseTransition = new Transition("False", Mock.Of<TransitionTarget>(), null, null);
+            var trueTransition = new Transition("True", Mock.Of<ITransitionTarget>(), null, null);
+            var elseTransition = new Transition("False", Mock.Of<ITransitionTarget>(), null, null);
 
             var state = new IfState(
                 "test",
@@ -35,8 +35,8 @@
         {
             var logger = new TestLogger();
 
-            var trueTransition = new Transition("True", Mock.Of<TransitionTarget>(), null, null);
-            var elseTransition = new Transition("False", Mock.Of<TransitionTarget>(), null, null);
+            var trueTransition = new Transition("True", Mock.Of<ITransitionTarget>(), null, null);
+            var elseTransition = new Transition("False", Mock.Of<ITransitionTarget>(), null, null);
 
             var state = new IfState(
                 "test",

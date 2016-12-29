@@ -4,7 +4,7 @@
     <RootNamespace>Morgados.StateMachineExploration.Tests</RootNamespace>
   </PropertyGroup>
   <PropertyGroup>
-    <OutputType>Exe</OutputType>
+    <OutputType>exe</OutputType>
     <TargetFramework>netcoreapp1.0</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
@@ -12,6 +12,8 @@
     <EmbeddedResource Include="**\*.resx" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="FakeItEasy" Version="3.0.0-beta002-build000066" />
+    <PackageReference Include="FakeItEasy.Analyzer" Version="2.3.2" />
     <PackageReference Include="Microsoft.NETCore.App">
       <Version>1.1.0</Version>
     </PackageReference>

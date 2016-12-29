@@ -11,7 +11,7 @@
     {
         private readonly Dictionary<string, LinkedList<Transition>> transitions = new Dictionary<string, LinkedList<Transition>>();
         private EventChannel<Transition> eventChannel;
-        CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
+        private CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
 
         protected EventStateBase(
             string name,

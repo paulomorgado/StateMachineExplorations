@@ -1,6 +1,6 @@
 ﻿namespace Morgados.StateMachine.Runtime
 {
-    public interface TransitionTarget
+    public interface ITransitionTarget
     {
     }
 }

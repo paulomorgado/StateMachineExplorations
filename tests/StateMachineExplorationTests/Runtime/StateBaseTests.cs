@@ -71,7 +71,7 @@
         {
             var logger = new TestLogger();
 
-            var targetedTransition = new Transition("Targeted", Mock.Of<TransitionTarget>(), logger.TransitionAction, null);
+            var targetedTransition = new Transition("Targeted", Mock.Of<ITransitionTarget>(), logger.TransitionAction, null);
             var nonTargetedTransition = new Transition("NonTargeted", null, logger.TransitionAction, null);
 
             var stateMock = new Mock<StateBase>(

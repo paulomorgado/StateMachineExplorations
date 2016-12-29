@@ -5,7 +5,8 @@
     using System.Threading;
     using System.Threading.Tasks;
 
-    public abstract class StateBase
+    [DebuggerDisplay(@"\{{Name}\}")]
+    public abstract class StateBase : ITransitionTarget
     {
         private Task<Transition> executingTask;
 
@@ -74,7 +75,6 @@
                 }
                 catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
                 {
-
                     return;
                 }
             }
@@ -93,7 +93,6 @@
                 }
                 catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
                 {
-
                     return;
                 }
             }
@@ -110,7 +109,6 @@
                 }
                 catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
                 {
-
                     return;
                 }
             }

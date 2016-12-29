@@ -41,9 +41,11 @@
         {
             this.EnusreCreated();
 
+            var acknowledge = this.acknowledge;
+
             this.publish.TrySetResult(message);
 
-            return await this.acknowledge.Task;
+            return await acknowledge.Task;
         }
 
         public void Acknowledge(bool handled)

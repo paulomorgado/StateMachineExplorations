@@ -14,8 +14,8 @@
         {
             var logger = new TestLogger();
 
-            var selectedTransition = new Transition("1", Mock.Of<TransitionTarget>(), null, null);
-            var elseTransition = new Transition("False", Mock.Of<TransitionTarget>(), null, null);
+            var selectedTransition = new Transition("1", Mock.Of<ITransitionTarget>(), null, null);
+            var elseTransition = new Transition("False", Mock.Of<ITransitionTarget>(), null, null);
 
             var state = new SwitchState<int>(
                 "test",
@@ -41,7 +41,7 @@
         {
             var logger = new TestLogger();
 
-            var elseTransition = new Transition("False", Mock.Of<TransitionTarget>(), null, null);
+            var elseTransition = new Transition("False", Mock.Of<ITransitionTarget>(), null, null);
 
             var state = new SwitchState<int>(
                 "test",
@@ -66,8 +66,8 @@
             {
                 cts.Cancel();
 
-                var selectedTransition = new Transition("1", Mock.Of<TransitionTarget>(), null, null);
-                var elseTransition = new Transition("False", Mock.Of<TransitionTarget>(), null, null);
+                var selectedTransition = new Transition("1", Mock.Of<ITransitionTarget>(), null, null);
+                var elseTransition = new Transition("False", Mock.Of<ITransitionTarget>(), null, null);
 
                 var state = new SwitchState<int>(
                     "test",
@@ -100,7 +100,7 @@
             {
                 cts.Cancel();
 
-                var elseTransition = new Transition("False", Mock.Of<TransitionTarget>(), null, null);
+                var elseTransition = new Transition("False", Mock.Of<ITransitionTarget>(), null, null);
 
                 var state = new SwitchState<int>(
                     "test",

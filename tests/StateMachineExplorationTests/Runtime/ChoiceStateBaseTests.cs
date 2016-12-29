@@ -14,8 +14,8 @@
         {
             var logger = new TestLogger();
 
-            var selectedTransition = new Transition("Selected", Mock.Of<TransitionTarget>(), logger.TransitionAction, null);
-            var elseTransition = new Transition("Else", Mock.Of<TransitionTarget>(), logger.TransitionAction, null);
+            var selectedTransition = new Transition("Selected", Mock.Of<ITransitionTarget>(), logger.TransitionAction, null);
+            var elseTransition = new Transition("Else", Mock.Of<ITransitionTarget>(), logger.TransitionAction, null);
 
             var stateMock = new Mock<ChoiceStateBase>(
                 "test",
@@ -40,7 +40,7 @@
         {
             var logger = new TestLogger();
 
-            var elseTransition = new Transition("Else", Mock.Of<TransitionTarget>(), logger.TransitionAction, null);
+            var elseTransition = new Transition("Else", Mock.Of<ITransitionTarget>(), logger.TransitionAction, null);
 
             var stateMock = new Mock<ChoiceStateBase>(
                 "test",
@@ -68,8 +68,8 @@
             {
                 cts.Cancel();
 
-                var selectedTransition = new Transition("Selected", Mock.Of<TransitionTarget>(), logger.TransitionAction, null);
-                var elseTransition = new Transition("Else", Mock.Of<TransitionTarget>(), logger.TransitionAction, null);
+                var selectedTransition = new Transition("Selected", Mock.Of<ITransitionTarget>(), logger.TransitionAction, null);
+                var elseTransition = new Transition("Else", Mock.Of<ITransitionTarget>(), logger.TransitionAction, null);
 
                 var stateMock = new Mock<ChoiceStateBase>(
                     "test",
@@ -96,7 +96,7 @@
         {
             var logger = new TestLogger();
 
-            var elseTransition = new Transition("Else", Mock.Of<TransitionTarget>(), logger.TransitionAction, null);
+            var elseTransition = new Transition("Else", Mock.Of<ITransitionTarget>(), logger.TransitionAction, null);
 
             using (var cts = new CancellationTokenSource())
             {

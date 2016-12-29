@@ -27,7 +27,11 @@
 
             while (transition != null)
             {
-                this.currentSubState = transition.Target as StateBase;
+                var nextState = transition.Target as StateBase;
+
+                await transition.ExecuteActionAsync(cancellationToken, (this.currentSubState ?? this)?.Name, nextState.Name);
+
+                this.currentSubState = nextState;
 
                 if (this.currentSubState == null)
                 {
@@ -35,19 +39,13 @@
                 }
 
                 transition = await this.currentSubState.ExecuteAsync(cancellationToken);
-
-                if (transition.Target != null)
-                {
-                    transition = null;
-                }
             }
 
             return null;
         }
 
         protected internal override async Task<bool> OnPublishEventAsync(string eventName)
-            => this.currentSubState is EventStateBase eventState
-                && await eventState.OnPublishEventAsync(eventName)
-                && await base.OnPublishEventAsync(eventName);
+            => (this.currentSubState is EventStateBase eventState && await eventState.OnPublishEventAsync(eventName))
+                || await base.OnPublishEventAsync(eventName);
     }
 }

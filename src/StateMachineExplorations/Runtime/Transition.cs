@@ -11,7 +11,7 @@
 
         public Transition(
             string name,
-            TransitionTarget target,
+            ITransitionTarget target,
             Func<CancellationToken, string, string, Task> action,
             Func<string, bool> guard)
         {
@@ -23,7 +23,7 @@
 
         public string Name { get; }
 
-        public TransitionTarget Target { get; }
+        public ITransitionTarget Target { get; }
 
         public bool Guard(string soruce) => this.guard?.Invoke(soruce) ?? true;
 
