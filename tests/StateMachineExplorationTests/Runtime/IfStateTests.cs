@@ -11,16 +11,16 @@
         [Fact]
         public async Task IfStat_WhenPredicateReturnsTrue_ReturnsTrueTransition()
         {
-            var logger = new TestLogger();
+            var tracker = new TestTracker();
 
             var trueTransition = new Transition("True", A.Fake<ITransitionTarget>(), null, null);
             var elseTransition = new Transition("False", A.Fake<ITransitionTarget>(), null, null);
 
             var state = new IfState(
                 "test",
-                logger.StateEnterAction,
-                logger.StateExitAction,
-                logger.StateCancelledAction,
+                tracker.StateEnterAction,
+                tracker.StateExitAction,
+                tracker.StateCancelledAction,
                 elseTransition,
                 trueTransition,
                 () => true);
@@ -33,16 +33,16 @@
         [Fact]
         public async Task IfStat_WhenPredicateReturnsFalse_ReturnsElseTransition()
         {
-            var logger = new TestLogger();
+            var tracker = new TestTracker();
 
             var trueTransition = new Transition("True", A.Fake<ITransitionTarget>(), null, null);
             var elseTransition = new Transition("False", A.Fake<ITransitionTarget>(), null, null);
 
             var state = new IfState(
                 "test",
-                logger.StateEnterAction,
-                logger.StateExitAction,
-                logger.StateCancelledAction,
+                tracker.StateEnterAction,
+                tracker.StateExitAction,
+                tracker.StateCancelledAction,
                 elseTransition,
                 trueTransition,
                 () => false);
@@ -55,15 +55,15 @@
         [Fact]
         public async Task IfState_WhenPredicateReturnsTrueAndCancelled_ReturnNullAndRunsCancelledAction()
         {
-            var logger = new TestLogger();
+            var tracker = new TestTracker();
 
             using (var cts = new CancellationTokenSource())
             {
                 var state = new IfState(
                     "test",
-                    logger.StateEnterAction,
-                    logger.StateExitAction,
-                    logger.StateCancelledAction,
+                    tracker.StateEnterAction,
+                    tracker.StateExitAction,
+                    tracker.StateCancelledAction,
                     new Transition("True", null, null, null),
                     new Transition("False", null, null, null),
                     () => { cts.Cancel(); return true; });
@@ -73,21 +73,21 @@
                 Assert.Null(actual);
             }
 
-            Assert.Equal(">test;!test;", logger.ToString());
+            Assert.Equal(">test;!test;", tracker.ToString());
         }
 
         [Fact]
         public async Task IfState_WhenPredicateReturnsFalseAndCancelled_ReturnNullAndRunsCancelledAction()
         {
-            var logger = new TestLogger();
+            var tracker = new TestTracker();
 
             using (var cts = new CancellationTokenSource())
             {
                 var state = new IfState(
                     "test",
-                    logger.StateEnterAction,
-                    logger.StateExitAction,
-                    logger.StateCancelledAction,
+                    tracker.StateEnterAction,
+                    tracker.StateExitAction,
+                    tracker.StateCancelledAction,
                     new Transition("True", null, null, null),
                     new Transition("False", null, null, null),
                     () => { cts.Cancel(); return false; });
@@ -97,7 +97,7 @@
                 Assert.Null(actual);
             }
 
-            Assert.Equal(">test;!test;", logger.ToString());
+            Assert.Equal(">test;!test;", tracker.ToString());
         }
     }
 }

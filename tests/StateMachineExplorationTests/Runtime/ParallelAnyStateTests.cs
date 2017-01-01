@@ -10,7 +10,7 @@
         [Fact]
         public async Task ParallelAnyState_WithoutCancellationAndEventTransitions_ExitsOnlyOneStateCancelsRest()
         {
-            var logger = new TestLogger();
+            var tracker = new TestTracker();
 
             var tcs1 = new TaskCompletionSource<object>(TaskCreationOptions.RunContinuationsAsynchronously);
             var tcs2 = new TaskCompletionSource<object>(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -18,30 +18,30 @@
 
             var state1 = new SimpleState(
                 "state1",
-                logger.StateEnterAction,
-                async s => { await logger.StateExecutionAction(s); await tcs1.Task; },
-                logger.StateExitAction,
-                logger.StateCancelledAction);
+                tracker.StateEnterAction,
+                async s => { await tracker.StateExecutionAction(s); await tcs1.Task; },
+                tracker.StateExitAction,
+                tracker.StateCancelledAction);
 
             var state2 = new SimpleState(
                 "state2",
-                logger.StateEnterAction,
-                async s => { await logger.StateExecutionAction(s); await tcs2.Task; },
-                logger.StateExitAction,
-                logger.StateCancelledAction);
+                tracker.StateEnterAction,
+                async s => { await tracker.StateExecutionAction(s); await tcs2.Task; },
+                tracker.StateExitAction,
+                tracker.StateCancelledAction);
 
             var state3 = new SimpleState(
                 "state3",
-                logger.StateEnterAction,
-                async s => { await logger.StateExecutionAction(s); await tcs3.Task; },
-                logger.StateExitAction,
-                logger.StateCancelledAction);
+                tracker.StateEnterAction,
+                async s => { await tracker.StateExecutionAction(s); await tcs3.Task; },
+                tracker.StateExitAction,
+                tracker.StateCancelledAction);
 
             var parallelState = new ParallelAnyState(
                 "parallel",
-                logger.StateEnterAction,
-                logger.StateExitAction,
-                logger.StateCancelledAction,
+                tracker.StateEnterAction,
+                tracker.StateExitAction,
+                tracker.StateCancelledAction,
                 new StateBase[] { state1, state2, state3 });
 
             var task = parallelState.ExecuteAsync(CancellationToken.None);
@@ -52,7 +52,7 @@
 
             await task;
 
-            var tracking = logger.ToString();
+            var tracking = tracker.ToString();
 
             Assert.EndsWith("<parallel;", tracking);
 

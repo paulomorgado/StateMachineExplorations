@@ -10,40 +10,40 @@
         [Fact]
         public async Task CompositeState_WithoutCancellationAndEventTransitions_ExecutesAllSubStates()
         {
-            var logger = new TestLogger();
+            var tracker = new TestTracker();
 
             var tcs2 = new TaskCompletionSource<object>();
 
             var state1 = new SimpleState(
                 "state1",
-                logger.StateEnterAction,
-                logger.StateExecutionAction,
-                logger.StateExitAction,
-                logger.StateCancelledAction);
+                tracker.StateEnterAction,
+                tracker.StateExecutionAction,
+                tracker.StateExitAction,
+                tracker.StateCancelledAction);
 
             var state2 = new SimpleState(
                 "state2",
-                logger.StateEnterAction,
-                async s => { await logger.StateExecutionAction(s); tcs2.SetResult(null); },
-                logger.StateExitAction,
-                logger.StateCancelledAction);
+                tracker.StateEnterAction,
+                async s => { await tracker.StateExecutionAction(s); tcs2.SetResult(null); },
+                tracker.StateExitAction,
+                tracker.StateCancelledAction);
 
             var state3 = new SimpleState(
                 "state3",
-                logger.StateEnterAction,
-                logger.StateExecutionAction,
-                logger.StateExitAction,
-                logger.StateCancelledAction);
+                tracker.StateEnterAction,
+                tracker.StateExecutionAction,
+                tracker.StateExitAction,
+                tracker.StateCancelledAction);
 
             var compositeState = new CompositeState(
                 "composite",
-                logger.StateEnterAction,
-                logger.StateExitAction,
-                logger.StateCancelledAction,
-                new Transition("T1", state1, logger.TransitionAction, null));
+                tracker.StateEnterAction,
+                tracker.StateExitAction,
+                tracker.StateCancelledAction,
+                new Transition("T1", state1, tracker.TransitionAction, null));
 
-            state1.AddEventTransition("E1", new Transition("T2", state2, logger.TransitionAction, null));
-            state2.AddEventTransition("E2", new Transition("T3", state3, logger.TransitionAction, null));
+            state1.AddEventTransition("E1", new Transition("T2", state2, tracker.TransitionAction, null));
+            state2.AddEventTransition("E2", new Transition("T3", state3, tracker.TransitionAction, null));
 
             var task = compositeState.ExecuteAsync(CancellationToken.None);
 
@@ -62,7 +62,7 @@
 
             await task;
 
-            Assert.Equal(">composite;@composite->state1;>state1;*state1;<state1;@state1->state2;>state2;*state2;<state2;@state2->state3;>state3;*state3;<state3;<composite;", logger.ToString());
+            Assert.Equal(">composite;@composite->state1;>state1;*state1;<state1;@state1->state2;>state2;*state2;<state2;@state2->state3;>state3;*state3;<state3;<composite;", tracker.ToString());
         }
     }
 }

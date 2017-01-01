@@ -53,9 +53,9 @@
         [Fact]
         public async Task EventStateBaseWithoutEventTransitions_WithoutCancellation_ReturnsReturnValueOfExecuteEventStepAsync()
         {
-            var logger = new TestLogger();
+            var tracker = new TestTracker();
 
-            var stateTransition = new Transition("Targeted", A.Fake<ITransitionTarget>(), logger.TransitionAction, null);
+            var stateTransition = new Transition("Targeted", A.Fake<ITransitionTarget>(), tracker.TransitionAction, null);
 
             var stateMock = A.Fake<EventStateBase>(
                 x =>
@@ -63,9 +63,9 @@
                     x.WithArgumentsForConstructor(new object[]
                       {
                         "test",
-                        logger.StateEnterAction,
-                        logger.StateExitAction,
-                        logger.StateCancelledAction,
+                        tracker.StateEnterAction,
+                        tracker.StateExitAction,
+                        tracker.StateCancelledAction,
                       });
 
                     x.CallsBaseMethods();
@@ -95,7 +95,7 @@
                 .MustHaveHappened(Repeated.Exactly.Once);
 
             Assert.Equal(stateTransition, actual);
-            Assert.Equal(">test;<test;", logger.ToString());
+            Assert.Equal(">test;<test;", tracker.ToString());
         }
 
         /*
@@ -140,12 +140,12 @@
         [Fact]
         public async Task EventStateBaseWithEventTransitions_WithoutCancellationWithTriggeredEventTransition_ReturnsEventTransitionAndAcknowledgesHandledEvent()
         {
-            var logger = new TestLogger();
+            var tracker = new TestTracker();
 
             var eventName = "event";
 
-            var eventTransition = new Transition("Targeted", A.Fake<ITransitionTarget>(), logger.TransitionAction, null);
-            var stateTransition = new Transition("State", A.Fake<ITransitionTarget>(), logger.TransitionAction, null);
+            var eventTransition = new Transition("Targeted", A.Fake<ITransitionTarget>(), tracker.TransitionAction, null);
+            var stateTransition = new Transition("State", A.Fake<ITransitionTarget>(), tracker.TransitionAction, null);
 
             var stateMock = A.Fake<EventStateBase>(
                 x =>
@@ -153,9 +153,9 @@
                     x.WithArgumentsForConstructor(new object[]
                       {
                         "test",
-                        logger.StateEnterAction,
-                        logger.StateExitAction,
-                        logger.StateCancelledAction,
+                        tracker.StateEnterAction,
+                        tracker.StateExitAction,
+                        tracker.StateCancelledAction,
                       });
 
                     x.CallsBaseMethods();
@@ -191,7 +191,7 @@
                 .MustHaveHappened(Repeated.Exactly.Once);
 
             Assert.Equal(eventTransition, actual);
-            Assert.Equal(">test;<test;", logger.ToString());
+            Assert.Equal(">test;<test;", tracker.ToString());
         }
 
         /*
@@ -231,11 +231,11 @@
         [Fact]
         public async Task EventStateBaseWithEventTransitions_WithoutCancellationWithoutTriggeredEventTransitionAndStateExecutionReturningNull_DoesntCompleteExecution()
         {
-            var logger = new TestLogger();
+            var tracker = new TestTracker();
 
             var eventName = "event";
 
-            var eventTransition = new Transition("Event", A.Fake<ITransitionTarget>(), logger.TransitionAction, null);
+            var eventTransition = new Transition("Event", A.Fake<ITransitionTarget>(), tracker.TransitionAction, null);
 
             var stateMock = A.Fake<EventStateBase>(
                 x =>
@@ -243,9 +243,9 @@
                     x.WithArgumentsForConstructor(new object[]
                       {
                         "test",
-                        logger.StateEnterAction,
-                        logger.StateExitAction,
-                        logger.StateCancelledAction,
+                        tracker.StateEnterAction,
+                        tracker.StateExitAction,
+                        tracker.StateCancelledAction,
                       });
 
                     x.CallsBaseMethods();
@@ -277,7 +277,7 @@
                 .MustHaveHappened(Repeated.Exactly.Once);
 
             Assert.False(executeTask.IsCompleted);
-            Assert.Equal(">test;", logger.ToString());
+            Assert.Equal(">test;", tracker.ToString());
         }
 
         /*
@@ -320,12 +320,12 @@
         [Fact]
         public async Task EventStateBaseWithEventTransitions_WithoutCancellationWithoutTriggeredEventTransitionAndStateExecutionReturningTargetedTransition_ReturnsReturnValueOfExecuteEventStepAsync()
         {
-            var logger = new TestLogger();
+            var tracker = new TestTracker();
 
             var eventName = "event";
 
-            var eventTransition = new Transition("Event", A.Fake<ITransitionTarget>(), logger.TransitionAction, null);
-            var stateTransition = new Transition("State", A.Fake<ITransitionTarget>(), logger.TransitionAction, null);
+            var eventTransition = new Transition("Event", A.Fake<ITransitionTarget>(), tracker.TransitionAction, null);
+            var stateTransition = new Transition("State", A.Fake<ITransitionTarget>(), tracker.TransitionAction, null);
 
             var stateMock = A.Fake<EventStateBase>(
                 x =>
@@ -333,9 +333,9 @@
                     x.WithArgumentsForConstructor(new object[]
                       {
                         "test",
-                        logger.StateEnterAction,
-                        logger.StateExitAction,
-                        logger.StateCancelledAction,
+                        tracker.StateEnterAction,
+                        tracker.StateExitAction,
+                        tracker.StateCancelledAction,
                       });
 
                     x.CallsBaseMethods();
@@ -367,7 +367,7 @@
                 .MustHaveHappened(Repeated.Exactly.Once);
 
             Assert.Equal(stateTransition, actual);
-            Assert.Equal(">test;<test;", logger.ToString());
+            Assert.Equal(">test;<test;", tracker.ToString());
         }
     }
 }

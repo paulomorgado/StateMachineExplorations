@@ -13,16 +13,16 @@
         [Fact]
         public async Task SwitchState_WhenSelectorReturnsExistingOption_ReturnsTransitionForOption()
         {
-            var logger = new TestLogger();
+            var tracker = new TestTracker();
 
             var selectedTransition = new Transition("1", A.Fake<ITransitionTarget>(), null, null);
             var elseTransition = new Transition("False", A.Fake<ITransitionTarget>(), null, null);
 
             var state = new SwitchState<int>(
                 "test",
-                logger.StateEnterAction,
-                logger.StateExitAction,
-                logger.StateCancelledAction,
+                tracker.StateEnterAction,
+                tracker.StateExitAction,
+                tracker.StateCancelledAction,
                 elseTransition,
                 new Dictionary<int, Transition>
                 {
@@ -40,15 +40,15 @@
         [Fact]
         public async Task SwitchState_WhenSelectorReturnsNonExistingOption_ReturnsElseTransition()
         {
-            var logger = new TestLogger();
+            var tracker = new TestTracker();
 
             var elseTransition = new Transition("False", A.Fake<ITransitionTarget>(), null, null);
 
             var state = new SwitchState<int>(
                 "test",
-                logger.StateEnterAction,
-                logger.StateExitAction,
-                logger.StateCancelledAction,
+                tracker.StateEnterAction,
+                tracker.StateExitAction,
+                tracker.StateCancelledAction,
                 elseTransition,
                 new Dictionary<int, Transition>(),
                 () => 2);
@@ -61,15 +61,15 @@
         [Fact]
         public async Task SwitchState_WithSelectedTransitionAndCancelled_ReturnNullAndRunsCancelledAction()
         {
-            var logger = new TestLogger();
+            var tracker = new TestTracker();
 
             using (var cts = new CancellationTokenSource())
             {
                 var state = new SwitchState<int>(
                     "test",
-                    logger.StateEnterAction,
-                    logger.StateExitAction,
-                    logger.StateCancelledAction,
+                    tracker.StateEnterAction,
+                    tracker.StateExitAction,
+                    tracker.StateCancelledAction,
                     new Transition("False", A.Fake<ITransitionTarget>(), null, null),
                     new Dictionary<int, Transition>
                     {
@@ -84,21 +84,21 @@
                 Assert.Null(actual);
             }
 
-            Assert.Equal(">test;!test;", logger.ToString());
+            Assert.Equal(">test;!test;", tracker.ToString());
         }
 
         [Fact]
         public async Task SwitchState_WithoutSelectedTransitionAndCancelled_ReturnNullAndRunsCancelledAction()
         {
-            var logger = new TestLogger();
+            var tracker = new TestTracker();
 
             using (var cts = new CancellationTokenSource())
             {
                 var state = new SwitchState<int>(
                     "test",
-                    logger.StateEnterAction,
-                    logger.StateExitAction,
-                    logger.StateCancelledAction,
+                    tracker.StateEnterAction,
+                    tracker.StateExitAction,
+                    tracker.StateCancelledAction,
                     new Transition("False", A.Fake<ITransitionTarget>(), null, null),
                     new Dictionary<int, Transition>(),
                     () => { cts.Cancel(); return 2; });
@@ -108,7 +108,7 @@
                 Assert.Null(actual);
             }
 
-            Assert.Equal(">test;!test;", logger.ToString());
+            Assert.Equal(">test;!test;", tracker.ToString());
         }
     }
 }

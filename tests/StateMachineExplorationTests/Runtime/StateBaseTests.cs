@@ -12,38 +12,38 @@
         [Fact]
         public async Task StateBase_WithoutCancellation_RunsEnterAndExitActions()
         {
-            var logger = new TestLogger();
+            var tracker = new TestTracker();
 
             var state = A.Fake<StateBase>(builder =>
                 builder.WithArgumentsForConstructor(new object[]
                     {
                                 "test",
-                                logger.StateEnterAction,
-                                logger.StateExitAction,
-                                logger.StateCancelledAction,
+                                tracker.StateEnterAction,
+                                tracker.StateExitAction,
+                                tracker.StateCancelledAction,
                     })
                 .CallsBaseMethods());
 
             await state.ExecuteAsync(CancellationToken.None);
 
-            Assert.Equal(">test;<test;", logger.ToString());
+            Assert.Equal(">test;<test;", tracker.ToString());
         }
 
         [Fact]
         public async Task StateBase_WithoutCancellationAndNonTargettedTransitions_RunsEnterAndExecutesTransitionsUntilNullTransitionAndExitActionsAndReturnsNull()
         {
-            var logger = new TestLogger();
+            var tracker = new TestTracker();
 
-            var nonTargetedTransition = new Transition("NonTargeted", null, logger.TransitionAction, null);
+            var nonTargetedTransition = new Transition("NonTargeted", null, tracker.TransitionAction, null);
 
             var state = A.Fake<StateBase>(builder =>
                 builder
                     .WithArgumentsForConstructor(new object[]
                         {
                             "test",
-                            logger.StateEnterAction,
-                            logger.StateExitAction,
-                            logger.StateCancelledAction,
+                            tracker.StateEnterAction,
+                            tracker.StateExitAction,
+                            tracker.StateCancelledAction,
                         })
                     .CallsBaseMethods());
 
@@ -55,25 +55,25 @@
             var actual = await state.ExecuteAsync(CancellationToken.None);
 
             Assert.Equal(null, actual);
-            Assert.Equal(">test;@test;@test;<test;", logger.ToString());
+            Assert.Equal(">test;@test;@test;<test;", tracker.ToString());
         }
 
         [Fact]
         public async Task StateBase_WithoutCancellationAndNonTargettedTransitions_RunsEnterAndExecutesTransitionsUntilTargettedTransitionAndExitActionsAndReturnsTargettedTransitionWithoutExecuting()
         {
-            var logger = new TestLogger();
+            var tracker = new TestTracker();
 
-            var targetedTransition = new Transition("Targeted", A.Fake<ITransitionTarget>(), logger.TransitionAction, null);
-            var nonTargetedTransition = new Transition("NonTargeted", null, logger.TransitionAction, null);
+            var targetedTransition = new Transition("Targeted", A.Fake<ITransitionTarget>(), tracker.TransitionAction, null);
+            var nonTargetedTransition = new Transition("NonTargeted", null, tracker.TransitionAction, null);
 
             var state = A.Fake<StateBase>(builder =>
                 builder
                     .WithArgumentsForConstructor(new object[]
                         {
                             "test",
-                            logger.StateEnterAction,
-                            logger.StateExitAction,
-                            logger.StateCancelledAction,
+                            tracker.StateEnterAction,
+                            tracker.StateExitAction,
+                            tracker.StateCancelledAction,
                         })
                     .CallsBaseMethods());
 
@@ -85,13 +85,13 @@
             var actual = await state.ExecuteAsync(CancellationToken.None);
 
             Assert.Equal(targetedTransition, actual);
-            Assert.Equal(">test;@test;@test;<test;", logger.ToString());
+            Assert.Equal(">test;@test;@test;<test;", tracker.ToString());
         }
 
         [Fact]
         public async Task StateBase_WithCancellationBeforeExecution_RunsNodAction()
         {
-            var logger = new TestLogger();
+            var tracker = new TestTracker();
 
             using (var cts = new CancellationTokenSource())
             {
@@ -102,22 +102,22 @@
                         .WithArgumentsForConstructor(new object[]
                             {
                                 "test",
-                                logger.StateEnterAction,
-                                logger.StateExitAction,
-                                logger.StateCancelledAction,
+                                tracker.StateEnterAction,
+                                tracker.StateExitAction,
+                                tracker.StateCancelledAction,
                             })
                         .CallsBaseMethods());
 
                 await state.ExecuteAsync(cts.Token);
             }
 
-            Assert.Equal(string.Empty, logger.ToString());
+            Assert.Equal(string.Empty, tracker.ToString());
         }
 
         [Fact]
         public async Task StateBase_WithCancellationDuringEnter_RunsEnterAndCancelledActions()
         {
-            var logger = new TestLogger();
+            var tracker = new TestTracker();
 
             using (var cts = new CancellationTokenSource())
             {
@@ -126,22 +126,22 @@
                         .WithArgumentsForConstructor(new object[]
                             {
                                 "test",
-                                new Func<string, Task>(async s => { await logger.StateEnterAction(s); cts.Cancel(); }),
-                                logger.StateExitAction,
-                                logger.StateCancelledAction,
+                                new Func<string, Task>(async s => { await tracker.StateEnterAction(s); cts.Cancel(); }),
+                                tracker.StateExitAction,
+                                tracker.StateCancelledAction,
                             })
                         .CallsBaseMethods());
 
                 await state.ExecuteAsync(cts.Token);
             }
 
-            Assert.Equal(">test;!test;", logger.ToString());
+            Assert.Equal(">test;!test;", tracker.ToString());
         }
 
         [Fact]
         public async Task StateBase_WithCancellationDuringExit_RunsEnterAndExitActions()
         {
-            var logger = new TestLogger();
+            var tracker = new TestTracker();
 
             using (var cts = new CancellationTokenSource())
             {
@@ -150,22 +150,22 @@
                         .WithArgumentsForConstructor(new object[]
                             {
                                 "test",
-                                logger.StateEnterAction,
-                                new Func<string, Task>(async s => { await logger.StateExitAction(s); cts.Cancel(); }),
-                                logger.StateCancelledAction,
+                                tracker.StateEnterAction,
+                                new Func<string, Task>(async s => { await tracker.StateExitAction(s); cts.Cancel(); }),
+                                tracker.StateCancelledAction,
                             })
                         .CallsBaseMethods());
 
                 await state.ExecuteAsync(cts.Token);
             }
 
-            Assert.Equal(">test;<test;", logger.ToString());
+            Assert.Equal(">test;<test;", tracker.ToString());
         }
 
         [Fact]
         public async Task StateBase_WithCancellationDuringExecute_RunsEnterAndExitActions()
         {
-            var logger = new TestLogger();
+            var tracker = new TestTracker();
 
             using (var cts = new CancellationTokenSource())
             {
@@ -174,9 +174,9 @@
                         .WithArgumentsForConstructor(new object[]
                             {
                                 "test",
-                                logger.StateEnterAction,
-                                logger.StateExitAction,
-                                logger.StateCancelledAction,
+                                tracker.StateEnterAction,
+                                tracker.StateExitAction,
+                                tracker.StateCancelledAction,
                             })
                         .CallsBaseMethods());
 
@@ -188,13 +188,13 @@
                 await state.ExecuteAsync(cts.Token);
             }
 
-            Assert.Equal(">test;!test;", logger.ToString());
+            Assert.Equal(">test;!test;", tracker.ToString());
         }
 
         [Fact]
         public void StateBase_ExecutingState_ThrowsInvalidOperationException()
         {
-            var logger = new TestLogger();
+            var tracker = new TestTracker();
 
             var tcs = new TaskCompletionSource<Transition>();
 
@@ -203,9 +203,9 @@
                     .WithArgumentsForConstructor(new object[]
                         {
                             "test",
-                            logger.StateEnterAction,
-                            logger.StateExitAction,
-                            logger.StateCancelledAction,
+                            tracker.StateEnterAction,
+                            tracker.StateExitAction,
+                            tracker.StateCancelledAction,
                         })
                     .CallsBaseMethods());
 

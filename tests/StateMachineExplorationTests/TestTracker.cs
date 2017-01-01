@@ -7,11 +7,11 @@
     using System.Threading.Tasks;
 
     [DebuggerDisplay(@"\{{ToString()}\}")]
-    internal class TestLogger
+    internal class TestTracker
     {
         private readonly StringBuilder builder;
 
-        public TestLogger()
+        public TestTracker()
         {
             this.builder = new StringBuilder();
 
@@ -70,7 +70,17 @@
             };
         }
 
-        public override string ToString() => this.builder.ToString();
+        public Func<string, Task> StateCancelledAction { get; }
+
+        public Func<string, Task> StateEnterAction { get; }
+
+        public Func<string, Task> StateExecutionAction { get; }
+
+        public Func<string, Task> StateExitAction { get; }
+
+        public Func<CancellationToken, string, string, Task> TransitionAction { get; }
+
+        public void Clear() => this.builder.Clear();
 
         public Task LogAsync(string text)
         {
@@ -79,16 +89,6 @@
             return Task.CompletedTask;
         }
 
-        public void Clear() => this.builder.Clear();
-
-        public Func<string, Task> StateEnterAction { get; }
-
-        public Func<string, Task> StateCancelledAction { get; }
-
-        public Func<string, Task> StateExecutionAction { get; }
-
-        public Func<string, Task> StateExitAction { get; }
-
-        public Func<CancellationToken, string, string, Task> TransitionAction { get; }
+        public override string ToString() => this.builder.ToString();
     }
 }

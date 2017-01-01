@@ -11,19 +11,19 @@
         [Fact]
         public async Task ChoiceStateBase_WithSelectedTransitionAndNotCancelled_ReturnsSelectedTransitionAndRunsEnterAndExitActions()
         {
-            var logger = new TestLogger();
+            var tracker = new TestTracker();
 
-            var selectedTransition = new Transition("Selected", A.Fake<ITransitionTarget>(), logger.TransitionAction, null);
-            var elseTransition = new Transition("Else", A.Fake<ITransitionTarget>(), logger.TransitionAction, null);
+            var selectedTransition = new Transition("Selected", A.Fake<ITransitionTarget>(), tracker.TransitionAction, null);
+            var elseTransition = new Transition("Else", A.Fake<ITransitionTarget>(), tracker.TransitionAction, null);
 
             var state = A.Fake<ChoiceStateBase>(builder =>
                 builder
                     .WithArgumentsForConstructor(new object[]
                         {
                             "test",
-                            logger.StateEnterAction,
-                            logger.StateExitAction,
-                            logger.StateCancelledAction,
+                            tracker.StateEnterAction,
+                            tracker.StateExitAction,
+                            tracker.StateCancelledAction,
                             elseTransition,
                         })
                     .CallsBaseMethods());
@@ -37,24 +37,24 @@
 
             Assert.Equal(selectedTransition, actual);
 
-            Assert.Equal(">test;<test;", logger.ToString());
+            Assert.Equal(">test;<test;", tracker.ToString());
         }
 
         [Fact]
         public async Task ChoiceStateBase_WithoutSelectedTransitionAndNotCancelled_ReturnElseTransitionAndRunsEnterAndExitActions()
         {
-            var logger = new TestLogger();
+            var tracker = new TestTracker();
 
-            var elseTransition = new Transition("Else", A.Fake<ITransitionTarget>(), logger.TransitionAction, null);
+            var elseTransition = new Transition("Else", A.Fake<ITransitionTarget>(), tracker.TransitionAction, null);
 
             var state = A.Fake<ChoiceStateBase>(builder =>
                 builder
                     .WithArgumentsForConstructor(new object[]
                         {
                             "test",
-                            logger.StateEnterAction,
-                            logger.StateExitAction,
-                            logger.StateCancelledAction,
+                            tracker.StateEnterAction,
+                            tracker.StateExitAction,
+                            tracker.StateCancelledAction,
                             elseTransition,
                         })
                     .CallsBaseMethods());
@@ -68,27 +68,27 @@
 
             Assert.Equal(elseTransition, actual);
 
-            Assert.Equal(">test;<test;", logger.ToString());
+            Assert.Equal(">test;<test;", tracker.ToString());
         }
 
         [Fact]
         public async Task ChoiceStateBase_WithSelectedTransitionAndCancelled_ReturnNullAndRunsCancelledAction()
         {
-            var logger = new TestLogger();
+            var tracker = new TestTracker();
 
             using (var cts = new CancellationTokenSource())
             {
-                var selectedTransition = new Transition("Selected", A.Fake<ITransitionTarget>(), logger.TransitionAction, null);
-                var elseTransition = new Transition("Else", A.Fake<ITransitionTarget>(), logger.TransitionAction, null);
+                var selectedTransition = new Transition("Selected", A.Fake<ITransitionTarget>(), tracker.TransitionAction, null);
+                var elseTransition = new Transition("Else", A.Fake<ITransitionTarget>(), tracker.TransitionAction, null);
 
                 var state = A.Fake<ChoiceStateBase>(builder =>
                     builder
                         .WithArgumentsForConstructor(new object[]
                             {
                                 "test",
-                                logger.StateEnterAction,
-                                logger.StateExitAction,
-                                logger.StateCancelledAction,
+                                tracker.StateEnterAction,
+                                tracker.StateExitAction,
+                                tracker.StateCancelledAction,
                                 elseTransition,
                             })
                         .CallsBaseMethods());
@@ -112,13 +112,13 @@
                 Assert.Null(actual);
             }
 
-            Assert.Equal(">test;!test;", logger.ToString());
+            Assert.Equal(">test;!test;", tracker.ToString());
         }
 
         [Fact]
         public async Task ChoiceStateBase_WithoutSelectedTransitionAndCancelled_ReturnNullAndRunsCancelledAction()
         {
-            var logger = new TestLogger();
+            var tracker = new TestTracker();
 
             using (var cts = new CancellationTokenSource())
             {
@@ -127,10 +127,10 @@
                         .WithArgumentsForConstructor(new object[]
                             {
                                 "test",
-                                logger.StateEnterAction,
-                                logger.StateExitAction,
-                                logger.StateCancelledAction,
-                                new Transition("Else", A.Fake<ITransitionTarget>(), logger.TransitionAction, null),
+                                tracker.StateEnterAction,
+                                tracker.StateExitAction,
+                                tracker.StateCancelledAction,
+                                new Transition("Else", A.Fake<ITransitionTarget>(), tracker.TransitionAction, null),
                             })
                         .CallsBaseMethods());
 
@@ -152,7 +152,7 @@
                 Assert.Null(actual);
             }
 
-            Assert.Equal(">test;!test;", logger.ToString());
+            Assert.Equal(">test;!test;", tracker.ToString());
         }
     }
 }
