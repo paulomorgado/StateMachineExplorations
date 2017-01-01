@@ -2,7 +2,7 @@
 
 namespace Morgados.StateMachine.Definitions
 {
-    public class ParallelStateDefinition : StateDefinition
+    public class ParallelStateDefinition : SimpleStateDefinition
     {
         public ParallelStateDefinition(string name)
             : base(name)
@@ -11,6 +11,6 @@ namespace Morgados.StateMachine.Definitions
 
         public ParallelModes Mode { get; set; }
 
-        public ICollection<StateDefinition> SubStates { get; } = new List<StateDefinition>();
+        public ICollection<SimpleStateDefinition> SubStates { get; } = new List<SimpleStateDefinition>();
     }
 }

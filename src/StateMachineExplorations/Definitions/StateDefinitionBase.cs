@@ -1,17 +1,16 @@
 ﻿namespace Morgados.StateMachine.Definitions
 {
     using System;
+    using System.Collections.Generic;
     using System.Threading.Tasks;
 
-    public abstract class TransitionDefinitionBase
+    public abstract class StateDefinitionBase
     {
-        protected TransitionDefinitionBase(string name)
+        protected StateDefinitionBase(string name)
         {
             this.Name = name;
         }
 
         public string Name { get; }
-
-        public Func<string, Task> Action { get; set; }
     }
 }

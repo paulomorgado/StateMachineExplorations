@@ -4,16 +4,14 @@
     using System.Collections.Generic;
     using System.Threading.Tasks;
 
-    public class StateDefinition
+    public class SimpleStateDefinition : StateDefinitionBase
     {
-        public StateDefinition(string name)
+        public SimpleStateDefinition(string name)
+            : base(name)
         {
-            this.Name = name;
         }
 
-        public string Name { get; }
-
-        public ICollection<TriggeredTransactionDefinition> Transitions { get; } = new List<TriggeredTransactionDefinition>();
+        public IDictionary<string, ICollection<GuardedTransitionDefinitionBase>> Transitions { get; } = new Dictionary<string, ICollection<GuardedTransitionDefinitionBase>>();
 
         public Func<string, Task> OnEnterAction { get; set; }
 
