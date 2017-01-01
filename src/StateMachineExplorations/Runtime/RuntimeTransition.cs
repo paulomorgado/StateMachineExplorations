@@ -6,12 +6,12 @@
     using System.Threading.Tasks;
 
     [DebuggerDisplay("TargetType = { Target?.GetType().Name }, TargetName = {Target?.Name}")]
-    public class Transition
+    public class RuntimeTransition
     {
         private readonly Func<CancellationToken, string, string, Task> action;
         private readonly Func<string, bool> guard;
 
-        public Transition(
+        public RuntimeTransition(
             string name,
             ITransitionTarget target,
             Func<CancellationToken, string, string, Task> action,

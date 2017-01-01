@@ -6,24 +6,24 @@
     using System.Threading.Tasks;
 
     [DebuggerDisplay("Name = {Name}, Current = {currentSubState?.Name}, Executing = {isExecuting != 0}")]
-    public class CompositeState : EventStateBase
+    public class CompositeRuntimeState : EventRuntimeStateBase
     {
-        private readonly Transition initialTransition;
-        private StateBase currentSubState;
+        private readonly RuntimeTransition initialTransition;
+        private RuntimeStateBase currentSubState;
         private int isExecuting;
 
-        public CompositeState(
+        public CompositeRuntimeState(
             string name,
             Func<string, Task> onEnterAction,
             Func<string, Task> onExitAction,
             Func<string, Task> onCancelledAction,
-            Transition initialSubState)
+            RuntimeTransition initialSubState)
             : base(name, onEnterAction, onExitAction, onCancelledAction)
         {
             this.initialTransition = initialSubState;
         }
 
-        protected override async Task<Transition> ExecuteEventStepAsync(CancellationToken cancellationToken)
+        protected override async Task<RuntimeTransition> ExecuteEventStepAsync(CancellationToken cancellationToken)
         {
             try
             {
@@ -34,7 +34,7 @@
 
                 while (transition != null)
                 {
-                    var nextState = transition.Target as StateBase;
+                    var nextState = transition.Target as RuntimeStateBase;
 
                     await transition.ExecuteActionAsync(cancellationToken, (this.currentSubState ?? this)?.Name, nextState.Name);
 
@@ -61,7 +61,7 @@
         {
             while (this.isExecuting != 0)
             {
-                if (this.currentSubState is EventStateBase eventState)
+                if (this.currentSubState is EventRuntimeStateBase eventState)
                 {
                     var status = await eventState.OnPublishEventAsync(eventName);
 

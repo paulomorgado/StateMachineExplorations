@@ -15,7 +15,7 @@
         [Fact]
         public async Task EventStateBase_TriggerWhenNotExecuting_ThrowsInvalidOperationException()
         {
-            var state = new Mock<EventStateBase>("test", null, null, null).Object;
+            var state = new Mock<EventRuntimeStateBase>("test", null, null, null).Object;
 
             Assert.ThrowsAsync<InvalidOperationException>(async () => await state.PublishEventAsync(null));
         }
@@ -55,9 +55,9 @@
         {
             var tracker = new TestTracker();
 
-            var stateTransition = new Transition("Targeted", A.Fake<ITransitionTarget>(), tracker.TransitionAction, null);
+            var stateTransition = new RuntimeTransition("Targeted", A.Fake<ITransitionTarget>(), tracker.TransitionAction, null);
 
-            var stateMock = A.Fake<EventStateBase>(
+            var stateMock = A.Fake<EventRuntimeStateBase>(
                 x =>
                 {
                     x.WithArgumentsForConstructor(new object[]
@@ -73,25 +73,25 @@
 
             A.CallTo(stateMock)
                 .Where(call => call.Method.Name == "EnterStepAsync")
-                .WithReturnType<Task<Transition>>()
+                .WithReturnType<Task<RuntimeTransition>>()
                 .CallsBaseMethod();
 
             A.CallTo(stateMock)
                 .Where(call => call.Method.Name == "ExitStepAsync")
-                .WithReturnType<Task<Transition>>()
+                .WithReturnType<Task<RuntimeTransition>>()
                 .CallsBaseMethod();
 
             A.CallTo(stateMock)
                 .Where(call => call.Method.Name == "ExecuteEventStepAsync")
-                .WithReturnType<Task<Transition>>()
-                .Returns(Task.FromResult<Transition>(stateTransition))
+                .WithReturnType<Task<RuntimeTransition>>()
+                .Returns(Task.FromResult<RuntimeTransition>(stateTransition))
                 .Once();
 
             var actual = await stateMock.ExecuteAsync(CancellationToken.None);
 
             A.CallTo(stateMock)
                 .Where(call => call.Method.Name == "ExecuteEventStepAsync")
-                .WithReturnType<Task<Transition>>()
+                .WithReturnType<Task<RuntimeTransition>>()
                 .MustHaveHappened(Repeated.Exactly.Once);
 
             Assert.Equal(stateTransition, actual);
@@ -144,10 +144,10 @@
 
             var eventName = "event";
 
-            var eventTransition = new Transition("Targeted", A.Fake<ITransitionTarget>(), tracker.TransitionAction, null);
-            var stateTransition = new Transition("State", A.Fake<ITransitionTarget>(), tracker.TransitionAction, null);
+            var eventTransition = new RuntimeTransition("Targeted", A.Fake<ITransitionTarget>(), tracker.TransitionAction, null);
+            var stateTransition = new RuntimeTransition("State", A.Fake<ITransitionTarget>(), tracker.TransitionAction, null);
 
-            var stateMock = A.Fake<EventStateBase>(
+            var stateMock = A.Fake<EventRuntimeStateBase>(
                 x =>
                 {
                     x.WithArgumentsForConstructor(new object[]
@@ -163,18 +163,18 @@
 
             A.CallTo(stateMock)
                 .Where(call => call.Method.Name == "EnterStepAsync")
-                .WithReturnType<Task<Transition>>()
+                .WithReturnType<Task<RuntimeTransition>>()
                 .CallsBaseMethod();
 
             A.CallTo(stateMock)
                 .Where(call => call.Method.Name == "ExitStepAsync")
-                .WithReturnType<Task<Transition>>()
+                .WithReturnType<Task<RuntimeTransition>>()
                 .CallsBaseMethod();
 
             A.CallTo(stateMock)
                 .Where(call => call.Method.Name == "ExecuteEventStepAsync")
-                .WithReturnType<Task<Transition>>()
-                .Returns(Task.FromResult<Transition>(null))
+                .WithReturnType<Task<RuntimeTransition>>()
+                .Returns(Task.FromResult<RuntimeTransition>(null))
                 .Once();
 
             stateMock.AddEventTransition(eventName, eventTransition);
@@ -187,7 +187,7 @@
 
             A.CallTo(stateMock)
                 .Where(call => call.Method.Name == "ExecuteEventStepAsync")
-                .WithReturnType<Task<Transition>>()
+                .WithReturnType<Task<RuntimeTransition>>()
                 .MustHaveHappened(Repeated.Exactly.Once);
 
             Assert.Equal(eventTransition, actual);
@@ -235,9 +235,9 @@
 
             var eventName = "event";
 
-            var eventTransition = new Transition("Event", A.Fake<ITransitionTarget>(), tracker.TransitionAction, null);
+            var eventTransition = new RuntimeTransition("Event", A.Fake<ITransitionTarget>(), tracker.TransitionAction, null);
 
-            var stateMock = A.Fake<EventStateBase>(
+            var stateMock = A.Fake<EventRuntimeStateBase>(
                 x =>
                 {
                     x.WithArgumentsForConstructor(new object[]
@@ -253,18 +253,18 @@
 
             A.CallTo(stateMock)
                 .Where(call => call.Method.Name == "EnterStepAsync")
-                .WithReturnType<Task<Transition>>()
+                .WithReturnType<Task<RuntimeTransition>>()
                 .CallsBaseMethod();
 
             A.CallTo(stateMock)
                 .Where(call => call.Method.Name == "ExitStepAsync")
-                .WithReturnType<Task<Transition>>()
+                .WithReturnType<Task<RuntimeTransition>>()
                 .CallsBaseMethod();
 
             A.CallTo(stateMock)
                 .Where(call => call.Method.Name == "ExecuteEventStepAsync")
-                .WithReturnType<Task<Transition>>()
-                .Returns(Task.FromResult<Transition>(null))
+                .WithReturnType<Task<RuntimeTransition>>()
+                .Returns(Task.FromResult<RuntimeTransition>(null))
                 .Once();
 
             stateMock.AddEventTransition(eventName, eventTransition);
@@ -273,7 +273,7 @@
 
             A.CallTo(stateMock)
                 .Where(call => call.Method.Name == "ExecuteEventStepAsync")
-                .WithReturnType<Task<Transition>>()
+                .WithReturnType<Task<RuntimeTransition>>()
                 .MustHaveHappened(Repeated.Exactly.Once);
 
             Assert.False(executeTask.IsCompleted);
@@ -324,10 +324,10 @@
 
             var eventName = "event";
 
-            var eventTransition = new Transition("Event", A.Fake<ITransitionTarget>(), tracker.TransitionAction, null);
-            var stateTransition = new Transition("State", A.Fake<ITransitionTarget>(), tracker.TransitionAction, null);
+            var eventTransition = new RuntimeTransition("Event", A.Fake<ITransitionTarget>(), tracker.TransitionAction, null);
+            var stateTransition = new RuntimeTransition("State", A.Fake<ITransitionTarget>(), tracker.TransitionAction, null);
 
-            var stateMock = A.Fake<EventStateBase>(
+            var stateMock = A.Fake<EventRuntimeStateBase>(
                 x =>
                 {
                     x.WithArgumentsForConstructor(new object[]
@@ -343,17 +343,17 @@
 
             A.CallTo(stateMock)
                 .Where(call => call.Method.Name == "EnterStepAsync")
-                .WithReturnType<Task<Transition>>()
+                .WithReturnType<Task<RuntimeTransition>>()
                 .CallsBaseMethod();
 
             A.CallTo(stateMock)
                 .Where(call => call.Method.Name == "ExitStepAsync")
-                .WithReturnType<Task<Transition>>()
+                .WithReturnType<Task<RuntimeTransition>>()
                 .CallsBaseMethod();
 
             A.CallTo(stateMock)
                 .Where(call => call.Method.Name == "ExecuteEventStepAsync")
-                .WithReturnType<Task<Transition>>()
+                .WithReturnType<Task<RuntimeTransition>>()
                 .Returns(Task.FromResult(stateTransition))
                 .Once();
 
@@ -363,7 +363,7 @@
 
             A.CallTo(stateMock)
                 .Where(call => call.Method.Name == "ExecuteEventStepAsync")
-                .WithReturnType<Task<Transition>>()
+                .WithReturnType<Task<RuntimeTransition>>()
                 .MustHaveHappened(Repeated.Exactly.Once);
 
             Assert.Equal(stateTransition, actual);

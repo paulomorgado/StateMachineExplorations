@@ -16,33 +16,33 @@
             var tcs2 = new TaskCompletionSource<object>(TaskCreationOptions.None);
             var tcs3 = new TaskCompletionSource<object>(TaskCreationOptions.None);
 
-            var state1 = new SimpleState(
+            var state1 = new SimpleRuntimeState(
                 "state1",
                 tracker.StateEnterAction,
                 async s => { await tracker.StateExecutionAction(s); await tcs1.Task; },
                 tracker.StateExitAction,
                 tracker.StateCancelledAction);
 
-            var state2 = new SimpleState(
+            var state2 = new SimpleRuntimeState(
                 "state2",
                 tracker.StateEnterAction,
                 async s => { await tracker.StateExecutionAction(s); await tcs2.Task; },
                 tracker.StateExitAction,
                 tracker.StateCancelledAction);
 
-            var state3 = new SimpleState(
+            var state3 = new SimpleRuntimeState(
                 "state3",
                 tracker.StateEnterAction,
                 async s => { await tracker.StateExecutionAction(s); await tcs3.Task; },
                 tracker.StateExitAction,
                 tracker.StateCancelledAction);
 
-            var parallelState = new ParallelAllState(
+            var parallelState = new ParallelAllRuntimeState(
                 "parallel",
                 tracker.StateEnterAction,
                 tracker.StateExitAction,
                 tracker.StateCancelledAction,
-                new StateBase[] { state1, state2, state3 });
+                new RuntimeStateBase[] { state1, state2, state3 });
 
             var task = parallelState.ExecuteAsync(CancellationToken.None);
 

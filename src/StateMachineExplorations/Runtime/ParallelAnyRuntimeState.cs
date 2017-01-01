@@ -6,19 +6,19 @@
     using System.Threading;
     using System.Threading.Tasks;
 
-    public class ParallelAnyState : ParallelStateBase
+    public class ParallelAnyRuntimeState : ParallelRuntimeStateBase
     {
-        public ParallelAnyState(
+        public ParallelAnyRuntimeState(
             string name,
             Func<string, Task> onEnterAction,
             Func<string, Task> onExitAction,
             Func<string, Task> onCancelledAction,
-            IEnumerable<StateBase> regions)
+            IEnumerable<RuntimeStateBase> regions)
             : base(name, onEnterAction, onExitAction, onCancelledAction, regions)
         {
         }
 
-        protected override async Task<Transition> ExecuteRegionsAsync(CancellationToken cancellationToken, IEnumerable<StateBase> regions)
+        protected override async Task<RuntimeTransition> ExecuteRegionsAsync(CancellationToken cancellationToken, IEnumerable<RuntimeStateBase> regions)
         {
             using (var cancellationTokenSource = new CancellationTokenSource())
             {

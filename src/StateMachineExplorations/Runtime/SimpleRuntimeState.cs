@@ -7,13 +7,13 @@
     using System.Threading;
     using System.Threading.Tasks;
 
-    public class SimpleState : EventStateBase
+    public class SimpleRuntimeState : EventRuntimeStateBase
     {
-        private TaskCompletionSource<Transition> taskCompletionSource;
-        private readonly List<Transition> transitions = new List<Transition>();
-        private Task<Transition> executingTask;
+        private TaskCompletionSource<RuntimeTransition> taskCompletionSource;
+        private readonly List<RuntimeTransition> transitions = new List<RuntimeTransition>();
+        private Task<RuntimeTransition> executingTask;
 
-        public SimpleState(
+        public SimpleRuntimeState(
             string name,
             Func<string, Task> onEnterAction,
             Func<string, Task> onExecuteAction,
@@ -26,7 +26,7 @@
 
         public Func<string, Task> OnExecuteAction { get; }
 
-        protected override async Task<Transition> ExecuteEventStepAsync(CancellationToken cancellationToken)
+        protected override async Task<RuntimeTransition> ExecuteEventStepAsync(CancellationToken cancellationToken)
         {
             if (this.OnExecuteAction != null)
             {

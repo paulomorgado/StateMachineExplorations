@@ -6,11 +6,11 @@
     using System.Threading.Tasks;
 
     [DebuggerDisplay(@"\{{Name}\}")]
-    public abstract class StateBase : ITransitionTarget
+    public abstract class RuntimeStateBase : ITransitionTarget
     {
-        private Task<Transition> executingTask;
+        private Task<RuntimeTransition> executingTask;
 
-        protected StateBase(
+        protected RuntimeStateBase(
             string name,
             Func<string, Task> onEnterAction,
             Func<string, Task> onExitAction,
@@ -30,7 +30,7 @@
 
         public Func<string, Task> OnCancelledAction { get; }
 
-        public async Task<Transition> ExecuteAsync(CancellationToken cancellationToken)
+        public async Task<RuntimeTransition> ExecuteAsync(CancellationToken cancellationToken)
         {
             this.EnsureNotExcuting();
 
@@ -46,7 +46,7 @@
             return await ExitOrCancelAsync(cancellationToken) ? transition : null;
         }
 
-        internal async Task<Transition> EnterAndExecuteAsync(CancellationToken cancellationToken)
+        internal async Task<RuntimeTransition> EnterAndExecuteAsync(CancellationToken cancellationToken)
         {
             await this.EnterStepAsync(cancellationToken);
 
@@ -86,7 +86,7 @@
             }
         }
 
-        protected abstract Task<Transition> ExecuteStepAsync(CancellationToken cancellationToken);
+        protected abstract Task<RuntimeTransition> ExecuteStepAsync(CancellationToken cancellationToken);
 
         [DebuggerStepThrough]
         protected virtual async Task ExitStepAsync(CancellationToken cancellationToken)
@@ -138,11 +138,11 @@
             }
         }
 
-        private async Task<Transition> ExecuteLoopAsync(CancellationToken cancellationToken)
+        private async Task<RuntimeTransition> ExecuteLoopAsync(CancellationToken cancellationToken)
         {
             try
             {
-                Transition transition;
+                RuntimeTransition transition;
 
                 do
                 {

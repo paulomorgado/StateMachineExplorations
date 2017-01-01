@@ -7,13 +7,13 @@
     using System.Threading;
     using System.Threading.Tasks;
 
-    public abstract class EventStateBase : StateBase
+    public abstract class EventRuntimeStateBase : RuntimeStateBase
     {
-        private readonly Dictionary<string, LinkedList<Transition>> transitions = new Dictionary<string, LinkedList<Transition>>();
-        private EventChannel<Transition> eventChannel;
+        private readonly Dictionary<string, LinkedList<RuntimeTransition>> transitions = new Dictionary<string, LinkedList<RuntimeTransition>>();
+        private EventChannel<RuntimeTransition> eventChannel;
         private CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
 
-        protected EventStateBase(
+        protected EventRuntimeStateBase(
             string name,
             Func<string, Task> onEnterAction,
             Func<string, Task> onExitAction,
@@ -29,13 +29,13 @@
             return await this.OnPublishEventAsync(eventName);
         }
 
-        public void AddEventTransition(string eventName, Transition transition)
+        public void AddEventTransition(string eventName, RuntimeTransition transition)
         {
             this.EnsureNotExcuting();
 
             if (!this.transitions.TryGetValue(eventName, out var transitionList))
             {
-                transitionList = new LinkedList<Transition>();
+                transitionList = new LinkedList<RuntimeTransition>();
                 this.transitions.Add(eventName, transitionList);
             }
 
@@ -65,7 +65,7 @@
             return false;
         }
 
-        protected override sealed async Task<Transition> ExecuteStepAsync(CancellationToken cancellationToken)
+        protected override sealed async Task<RuntimeTransition> ExecuteStepAsync(CancellationToken cancellationToken)
         {
             if (this.transitions.Count == 0)
             {
@@ -79,7 +79,7 @@
 
             var currentCancellationToken = combinedCancellationTokenSource.Token;
 
-            Interlocked.Exchange(ref this.eventChannel, new EventChannel<Transition>());
+            Interlocked.Exchange(ref this.eventChannel, new EventChannel<RuntimeTransition>());
 
             try
             {
@@ -105,7 +105,7 @@
             }
         }
 
-        private async Task<Transition> ExecuteStepWithTransitionsAsync(CancellationToken cancellationToken)
+        private async Task<RuntimeTransition> ExecuteStepWithTransitionsAsync(CancellationToken cancellationToken)
         {
             Debug.Assert(this.eventChannel != null);
             Debug.Assert(this.cancellationTokenSource != null);
@@ -148,6 +148,6 @@
             }
         }
 
-        protected abstract Task<Transition> ExecuteEventStepAsync(CancellationToken cancellationToken);
+        protected abstract Task<RuntimeTransition> ExecuteEventStepAsync(CancellationToken cancellationToken);
     }
 }

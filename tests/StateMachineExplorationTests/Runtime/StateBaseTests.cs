@@ -14,7 +14,7 @@
         {
             var tracker = new TestTracker();
 
-            var state = A.Fake<StateBase>(builder =>
+            var state = A.Fake<RuntimeStateBase>(builder =>
                 builder.WithArgumentsForConstructor(new object[]
                     {
                                 "test",
@@ -34,9 +34,9 @@
         {
             var tracker = new TestTracker();
 
-            var nonTargetedTransition = new Transition("NonTargeted", null, tracker.TransitionAction, null);
+            var nonTargetedTransition = new RuntimeTransition("NonTargeted", null, tracker.TransitionAction, null);
 
-            var state = A.Fake<StateBase>(builder =>
+            var state = A.Fake<RuntimeStateBase>(builder =>
                 builder
                     .WithArgumentsForConstructor(new object[]
                         {
@@ -49,7 +49,7 @@
 
             A.CallTo(state)
                 .Where(call => call.Method.Name == "ExecuteStepAsync")
-                .WithReturnType<Task<Transition>>()
+                .WithReturnType<Task<RuntimeTransition>>()
                 .ReturnsNextFromSequence(nonTargetedTransition, nonTargetedTransition, null);
 
             var actual = await state.ExecuteAsync(CancellationToken.None);
@@ -63,10 +63,10 @@
         {
             var tracker = new TestTracker();
 
-            var targetedTransition = new Transition("Targeted", A.Fake<ITransitionTarget>(), tracker.TransitionAction, null);
-            var nonTargetedTransition = new Transition("NonTargeted", null, tracker.TransitionAction, null);
+            var targetedTransition = new RuntimeTransition("Targeted", A.Fake<ITransitionTarget>(), tracker.TransitionAction, null);
+            var nonTargetedTransition = new RuntimeTransition("NonTargeted", null, tracker.TransitionAction, null);
 
-            var state = A.Fake<StateBase>(builder =>
+            var state = A.Fake<RuntimeStateBase>(builder =>
                 builder
                     .WithArgumentsForConstructor(new object[]
                         {
@@ -79,7 +79,7 @@
 
             A.CallTo(state)
                 .Where(call => call.Method.Name == "ExecuteStepAsync")
-                .WithReturnType<Task<Transition>>()
+                .WithReturnType<Task<RuntimeTransition>>()
                 .ReturnsNextFromSequence(nonTargetedTransition, nonTargetedTransition, targetedTransition);
 
             var actual = await state.ExecuteAsync(CancellationToken.None);
@@ -97,7 +97,7 @@
             {
                 cts.Cancel();
 
-                var state = A.Fake<StateBase>(builder =>
+                var state = A.Fake<RuntimeStateBase>(builder =>
                     builder
                         .WithArgumentsForConstructor(new object[]
                             {
@@ -121,7 +121,7 @@
 
             using (var cts = new CancellationTokenSource())
             {
-                var state = A.Fake<StateBase>(builder =>
+                var state = A.Fake<RuntimeStateBase>(builder =>
                     builder
                         .WithArgumentsForConstructor(new object[]
                             {
@@ -145,7 +145,7 @@
 
             using (var cts = new CancellationTokenSource())
             {
-                var state = A.Fake<StateBase>(builder =>
+                var state = A.Fake<RuntimeStateBase>(builder =>
                     builder
                         .WithArgumentsForConstructor(new object[]
                             {
@@ -169,7 +169,7 @@
 
             using (var cts = new CancellationTokenSource())
             {
-                var state = A.Fake<StateBase>(builder =>
+                var state = A.Fake<RuntimeStateBase>(builder =>
                     builder
                         .WithArgumentsForConstructor(new object[]
                             {
@@ -182,7 +182,7 @@
 
                 A.CallTo(state)
                     .Where(call => call.Method.Name == "ExecuteStepAsync")
-                    .WithReturnType<Task<Transition>>()
+                    .WithReturnType<Task<RuntimeTransition>>()
                     .Invokes(() => cts.Cancel());
 
                 await state.ExecuteAsync(cts.Token);
@@ -196,9 +196,9 @@
         {
             var tracker = new TestTracker();
 
-            var tcs = new TaskCompletionSource<Transition>();
+            var tcs = new TaskCompletionSource<RuntimeTransition>();
 
-            var state = A.Fake<StateBase>(builder =>
+            var state = A.Fake<RuntimeStateBase>(builder =>
                 builder
                     .WithArgumentsForConstructor(new object[]
                         {
@@ -211,7 +211,7 @@
 
             A.CallTo(state)
                 .Where(call => call.Method.Name == "ExecuteStepAsync")
-                .WithReturnType<Task<Transition>>()
+                .WithReturnType<Task<RuntimeTransition>>()
                 .Returns(tcs.Task);
 
             state.ExecuteAsync(CancellationToken.None);

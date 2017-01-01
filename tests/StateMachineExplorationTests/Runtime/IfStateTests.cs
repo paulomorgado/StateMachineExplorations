@@ -13,10 +13,10 @@
         {
             var tracker = new TestTracker();
 
-            var trueTransition = new Transition("True", A.Fake<ITransitionTarget>(), null, null);
-            var elseTransition = new Transition("False", A.Fake<ITransitionTarget>(), null, null);
+            var trueTransition = new RuntimeTransition("True", A.Fake<ITransitionTarget>(), null, null);
+            var elseTransition = new RuntimeTransition("False", A.Fake<ITransitionTarget>(), null, null);
 
-            var state = new IfState(
+            var state = new IfRuntimeState(
                 "test",
                 tracker.StateEnterAction,
                 tracker.StateExitAction,
@@ -35,10 +35,10 @@
         {
             var tracker = new TestTracker();
 
-            var trueTransition = new Transition("True", A.Fake<ITransitionTarget>(), null, null);
-            var elseTransition = new Transition("False", A.Fake<ITransitionTarget>(), null, null);
+            var trueTransition = new RuntimeTransition("True", A.Fake<ITransitionTarget>(), null, null);
+            var elseTransition = new RuntimeTransition("False", A.Fake<ITransitionTarget>(), null, null);
 
-            var state = new IfState(
+            var state = new IfRuntimeState(
                 "test",
                 tracker.StateEnterAction,
                 tracker.StateExitAction,
@@ -59,13 +59,13 @@
 
             using (var cts = new CancellationTokenSource())
             {
-                var state = new IfState(
+                var state = new IfRuntimeState(
                     "test",
                     tracker.StateEnterAction,
                     tracker.StateExitAction,
                     tracker.StateCancelledAction,
-                    new Transition("True", null, null, null),
-                    new Transition("False", null, null, null),
+                    new RuntimeTransition("True", null, null, null),
+                    new RuntimeTransition("False", null, null, null),
                     () => { cts.Cancel(); return true; });
 
                 var actual = await state.ExecuteAsync(cts.Token);
@@ -83,13 +83,13 @@
 
             using (var cts = new CancellationTokenSource())
             {
-                var state = new IfState(
+                var state = new IfRuntimeState(
                     "test",
                     tracker.StateEnterAction,
                     tracker.StateExitAction,
                     tracker.StateCancelledAction,
-                    new Transition("True", null, null, null),
-                    new Transition("False", null, null, null),
+                    new RuntimeTransition("True", null, null, null),
+                    new RuntimeTransition("False", null, null, null),
                     () => { cts.Cancel(); return false; });
 
                 var actual = await state.ExecuteAsync(cts.Token);

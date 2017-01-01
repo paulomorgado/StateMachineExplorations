@@ -14,36 +14,36 @@
 
             var tcs2 = new TaskCompletionSource<object>();
 
-            var state1 = new SimpleState(
+            var state1 = new SimpleRuntimeState(
                 "state1",
                 tracker.StateEnterAction,
                 tracker.StateExecutionAction,
                 tracker.StateExitAction,
                 tracker.StateCancelledAction);
 
-            var state2 = new SimpleState(
+            var state2 = new SimpleRuntimeState(
                 "state2",
                 tracker.StateEnterAction,
                 async s => { await tracker.StateExecutionAction(s); tcs2.SetResult(null); },
                 tracker.StateExitAction,
                 tracker.StateCancelledAction);
 
-            var state3 = new SimpleState(
+            var state3 = new SimpleRuntimeState(
                 "state3",
                 tracker.StateEnterAction,
                 tracker.StateExecutionAction,
                 tracker.StateExitAction,
                 tracker.StateCancelledAction);
 
-            var compositeState = new CompositeState(
+            var compositeState = new CompositeRuntimeState(
                 "composite",
                 tracker.StateEnterAction,
                 tracker.StateExitAction,
                 tracker.StateCancelledAction,
-                new Transition("T1", state1, tracker.TransitionAction, null));
+                new RuntimeTransition("T1", state1, tracker.TransitionAction, null));
 
-            state1.AddEventTransition("E1", new Transition("T2", state2, tracker.TransitionAction, null));
-            state2.AddEventTransition("E2", new Transition("T3", state3, tracker.TransitionAction, null));
+            state1.AddEventTransition("E1", new RuntimeTransition("T2", state2, tracker.TransitionAction, null));
+            state2.AddEventTransition("E2", new RuntimeTransition("T3", state3, tracker.TransitionAction, null));
 
             var task = compositeState.ExecuteAsync(CancellationToken.None);
 

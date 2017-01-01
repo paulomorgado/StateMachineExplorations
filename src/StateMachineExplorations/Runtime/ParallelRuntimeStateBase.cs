@@ -6,30 +6,30 @@
     using System.Threading;
     using System.Threading.Tasks;
 
-    public abstract class ParallelStateBase : EventStateBase
+    public abstract class ParallelRuntimeStateBase : EventRuntimeStateBase
     {
-        private readonly IEnumerable<StateBase> regions;
+        private readonly IEnumerable<RuntimeStateBase> regions;
 
-        protected ParallelStateBase(
+        protected ParallelRuntimeStateBase(
             string name,
             Func<string, Task> onEnterAction,
             Func<string, Task> onExitAction,
             Func<string, Task> onCancelledAction,
-            IEnumerable<StateBase> regions)
+            IEnumerable<RuntimeStateBase> regions)
             : base(name, onEnterAction, onExitAction, onCancelledAction)
         {
             this.regions = regions;
         }
 
-        protected override async Task<Transition> ExecuteEventStepAsync(CancellationToken cancellationToken)
+        protected override async Task<RuntimeTransition> ExecuteEventStepAsync(CancellationToken cancellationToken)
         {
             return await ExecuteRegionsAsync(cancellationToken, this.regions);
         }
 
-        protected abstract Task<Transition> ExecuteRegionsAsync(CancellationToken cancellationToken, IEnumerable<StateBase> regions);
+        protected abstract Task<RuntimeTransition> ExecuteRegionsAsync(CancellationToken cancellationToken, IEnumerable<RuntimeStateBase> regions);
 
         protected internal override async Task<bool?> OnPublishEventAsync(string eventName)
-            => (await Task.WhenAll(this.regions.OfType<EventStateBase>().Select(s => s.OnPublishEventAsync(eventName)))).Any(a => a.GetValueOrDefault())
+            => (await Task.WhenAll(this.regions.OfType<EventRuntimeStateBase>().Select(s => s.OnPublishEventAsync(eventName)))).Any(a => a.GetValueOrDefault())
                 ? true
                 : await base.OnPublishEventAsync(eventName);
     }

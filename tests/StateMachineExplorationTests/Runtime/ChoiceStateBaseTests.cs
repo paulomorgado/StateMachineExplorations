@@ -13,10 +13,10 @@
         {
             var tracker = new TestTracker();
 
-            var selectedTransition = new Transition("Selected", A.Fake<ITransitionTarget>(), tracker.TransitionAction, null);
-            var elseTransition = new Transition("Else", A.Fake<ITransitionTarget>(), tracker.TransitionAction, null);
+            var selectedTransition = new RuntimeTransition("Selected", A.Fake<ITransitionTarget>(), tracker.TransitionAction, null);
+            var elseTransition = new RuntimeTransition("Else", A.Fake<ITransitionTarget>(), tracker.TransitionAction, null);
 
-            var state = A.Fake<ChoiceStateBase>(builder =>
+            var state = A.Fake<ChoiceRuntimeStateBase>(builder =>
                 builder
                     .WithArgumentsForConstructor(new object[]
                         {
@@ -30,7 +30,7 @@
 
             A.CallTo(state)
                 .Where(call => call.Method.Name == "SelectTransition")
-                .WithReturnType<Transition>()
+                .WithReturnType<RuntimeTransition>()
                 .Returns(selectedTransition);
 
             var actual = await state.ExecuteAsync(CancellationToken.None);
@@ -45,9 +45,9 @@
         {
             var tracker = new TestTracker();
 
-            var elseTransition = new Transition("Else", A.Fake<ITransitionTarget>(), tracker.TransitionAction, null);
+            var elseTransition = new RuntimeTransition("Else", A.Fake<ITransitionTarget>(), tracker.TransitionAction, null);
 
-            var state = A.Fake<ChoiceStateBase>(builder =>
+            var state = A.Fake<ChoiceRuntimeStateBase>(builder =>
                 builder
                     .WithArgumentsForConstructor(new object[]
                         {
@@ -61,7 +61,7 @@
 
             A.CallTo(state)
                 .Where(call => call.Method.Name == "SelectTransition")
-                .WithReturnType<Transition>()
+                .WithReturnType<RuntimeTransition>()
                 .Returns(null);
 
             var actual = await state.ExecuteAsync(CancellationToken.None);
@@ -78,10 +78,10 @@
 
             using (var cts = new CancellationTokenSource())
             {
-                var selectedTransition = new Transition("Selected", A.Fake<ITransitionTarget>(), tracker.TransitionAction, null);
-                var elseTransition = new Transition("Else", A.Fake<ITransitionTarget>(), tracker.TransitionAction, null);
+                var selectedTransition = new RuntimeTransition("Selected", A.Fake<ITransitionTarget>(), tracker.TransitionAction, null);
+                var elseTransition = new RuntimeTransition("Else", A.Fake<ITransitionTarget>(), tracker.TransitionAction, null);
 
-                var state = A.Fake<ChoiceStateBase>(builder =>
+                var state = A.Fake<ChoiceRuntimeStateBase>(builder =>
                     builder
                         .WithArgumentsForConstructor(new object[]
                             {
@@ -102,7 +102,7 @@
 
                 A.CallTo(state)
                     .Where(call => call.Method.Name == "SelectTransition")
-                    .WithReturnType<Transition>()
+                    .WithReturnType<RuntimeTransition>()
                     // TODO: FakeItEasy bug
                     //.Returns(selectedTransition);
                     .ReturnsLazily(() => { cts.Cancel(); return selectedTransition; });
@@ -122,7 +122,7 @@
 
             using (var cts = new CancellationTokenSource())
             {
-                var state = A.Fake<ChoiceStateBase>(builder =>
+                var state = A.Fake<ChoiceRuntimeStateBase>(builder =>
                     builder
                         .WithArgumentsForConstructor(new object[]
                             {
@@ -130,7 +130,7 @@
                                 tracker.StateEnterAction,
                                 tracker.StateExitAction,
                                 tracker.StateCancelledAction,
-                                new Transition("Else", A.Fake<ITransitionTarget>(), tracker.TransitionAction, null),
+                                new RuntimeTransition("Else", A.Fake<ITransitionTarget>(), tracker.TransitionAction, null),
                             })
                         .CallsBaseMethods());
 
@@ -144,8 +144,8 @@
                 // TODO: FakeItEasy bug
                 A.CallTo(state)
                     .Where(call => call.Method.Name == "SelectTransition")
-                    .WithReturnType<Transition>()
-                    .ReturnsLazily(() => { cts.Cancel(); return (Transition)null; });
+                    .WithReturnType<RuntimeTransition>()
+                    .ReturnsLazily(() => { cts.Cancel(); return (RuntimeTransition)null; });
 
                 var actual = await state.ExecuteAsync(cts.Token);
 

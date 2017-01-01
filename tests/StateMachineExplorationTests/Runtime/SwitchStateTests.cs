@@ -15,20 +15,20 @@
         {
             var tracker = new TestTracker();
 
-            var selectedTransition = new Transition("1", A.Fake<ITransitionTarget>(), null, null);
-            var elseTransition = new Transition("False", A.Fake<ITransitionTarget>(), null, null);
+            var selectedTransition = new RuntimeTransition("1", A.Fake<ITransitionTarget>(), null, null);
+            var elseTransition = new RuntimeTransition("False", A.Fake<ITransitionTarget>(), null, null);
 
-            var state = new SwitchState<int>(
+            var state = new SwitchRuntimeState<int>(
                 "test",
                 tracker.StateEnterAction,
                 tracker.StateExitAction,
                 tracker.StateCancelledAction,
                 elseTransition,
-                new Dictionary<int, Transition>
+                new Dictionary<int, RuntimeTransition>
                 {
-                    { 0, new Transition("0", null, null, null) },
+                    { 0, new RuntimeTransition("0", null, null, null) },
                     { 1, selectedTransition },
-                    { 2, new Transition("2", null, null, null) },
+                    { 2, new RuntimeTransition("2", null, null, null) },
                 },
                 () => 1);
 
@@ -42,15 +42,15 @@
         {
             var tracker = new TestTracker();
 
-            var elseTransition = new Transition("False", A.Fake<ITransitionTarget>(), null, null);
+            var elseTransition = new RuntimeTransition("False", A.Fake<ITransitionTarget>(), null, null);
 
-            var state = new SwitchState<int>(
+            var state = new SwitchRuntimeState<int>(
                 "test",
                 tracker.StateEnterAction,
                 tracker.StateExitAction,
                 tracker.StateCancelledAction,
                 elseTransition,
-                new Dictionary<int, Transition>(),
+                new Dictionary<int, RuntimeTransition>(),
                 () => 2);
 
             var actual = await state.ExecuteAsync(CancellationToken.None);
@@ -65,17 +65,17 @@
 
             using (var cts = new CancellationTokenSource())
             {
-                var state = new SwitchState<int>(
+                var state = new SwitchRuntimeState<int>(
                     "test",
                     tracker.StateEnterAction,
                     tracker.StateExitAction,
                     tracker.StateCancelledAction,
-                    new Transition("False", A.Fake<ITransitionTarget>(), null, null),
-                    new Dictionary<int, Transition>
+                    new RuntimeTransition("False", A.Fake<ITransitionTarget>(), null, null),
+                    new Dictionary<int, RuntimeTransition>
                     {
-                        { 0, new Transition("0", null, null, null) },
-                        { 1, new Transition("1", A.Fake<ITransitionTarget>(), null, null)},
-                        { 2, new Transition("2", null, null, null) },
+                        { 0, new RuntimeTransition("0", null, null, null) },
+                        { 1, new RuntimeTransition("1", A.Fake<ITransitionTarget>(), null, null)},
+                        { 2, new RuntimeTransition("2", null, null, null) },
                     },
                     () => { cts.Cancel(); return 1; });
 
@@ -94,13 +94,13 @@
 
             using (var cts = new CancellationTokenSource())
             {
-                var state = new SwitchState<int>(
+                var state = new SwitchRuntimeState<int>(
                     "test",
                     tracker.StateEnterAction,
                     tracker.StateExitAction,
                     tracker.StateCancelledAction,
-                    new Transition("False", A.Fake<ITransitionTarget>(), null, null),
-                    new Dictionary<int, Transition>(),
+                    new RuntimeTransition("False", A.Fake<ITransitionTarget>(), null, null),
+                    new Dictionary<int, RuntimeTransition>(),
                     () => { cts.Cancel(); return 2; });
 
                 var actual = await state.ExecuteAsync(cts.Token);
