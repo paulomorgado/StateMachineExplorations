@@ -2,5 +2,6 @@
 {
     public interface ITransitionTarget
     {
+        string Name { get; }
     }
 }

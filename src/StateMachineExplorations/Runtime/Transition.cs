@@ -1,9 +1,11 @@
 ﻿namespace Morgados.StateMachine.Runtime
 {
     using System;
+    using System.Diagnostics;
     using System.Threading;
     using System.Threading.Tasks;
 
+    [DebuggerDisplay("TargetType = { Target?.GetType().Name }, TargetName = {Target?.Name}")]
     public class Transition
     {
         private readonly Func<CancellationToken, string, string, Task> action;
@@ -28,6 +30,6 @@
         public bool Guard(string soruce) => this.guard?.Invoke(soruce) ?? true;
 
         public Task ExecuteActionAsync(CancellationToken cancellationToken, string soruce, string target)
-            => this.action(cancellationToken, soruce, target);
+            => this.action?.Invoke(cancellationToken, soruce, target);
     }
 }

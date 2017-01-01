@@ -1,13 +1,16 @@
 ﻿namespace Morgados.StateMachine.Runtime
 {
     using System;
+    using System.Diagnostics;
     using System.Threading;
     using System.Threading.Tasks;
 
+    [DebuggerDisplay("Name = {Name}, Current = {currentSubState?.Name}, Executing = {isExecuting != 0}")]
     public class CompositeState : EventStateBase
     {
-        private StateBase currentSubState;
         private readonly Transition initialTransition;
+        private StateBase currentSubState;
+        private int isExecuting;
 
         public CompositeState(
             string name,
@@ -22,30 +25,63 @@
 
         protected override async Task<Transition> ExecuteEventStepAsync(CancellationToken cancellationToken)
         {
-            this.currentSubState = null;
-            var transition = this.initialTransition;
-
-            while (transition != null)
+            try
             {
-                var nextState = transition.Target as StateBase;
+                Interlocked.Exchange(ref this.isExecuting, 1);
 
-                await transition.ExecuteActionAsync(cancellationToken, (this.currentSubState ?? this)?.Name, nextState.Name);
+                this.currentSubState = null;
+                var transition = this.initialTransition;
 
-                this.currentSubState = nextState;
-
-                if (this.currentSubState == null)
+                while (transition != null)
                 {
-                    return null;
+                    var nextState = transition.Target as StateBase;
+
+                    await transition.ExecuteActionAsync(cancellationToken, (this.currentSubState ?? this)?.Name, nextState.Name);
+
+                    Interlocked.Exchange(ref this.currentSubState, nextState);
+
+                    if (this.currentSubState == null)
+                    {
+                        return null;
+                    }
+
+                    transition = await this.currentSubState.ExecuteAsync(cancellationToken);
                 }
 
-                transition = await this.currentSubState.ExecuteAsync(cancellationToken);
+                return null;
+            }
+            finally
+            {
+                Interlocked.Exchange(ref this.isExecuting, 0);
+            }
+        }
+
+        /// <inheritdoc/>
+        protected internal override async Task<bool?> OnPublishEventAsync(string eventName)
+        {
+            while (this.isExecuting != 0)
+            {
+                if (this.currentSubState is EventStateBase eventState)
+                {
+                    var status = await eventState.OnPublishEventAsync(eventName);
+
+                    if (!status.HasValue)
+                    {
+                        continue;
+                    }
+                    else
+                    {
+                        if (status.Value)
+                        {
+                            return true;
+                        }
+                    }
+                }
+
+                return await base.OnPublishEventAsync(eventName);
             }
 
             return null;
         }
-
-        protected internal override async Task<bool> OnPublishEventAsync(string eventName)
-            => (this.currentSubState is EventStateBase eventState && await eventState.OnPublishEventAsync(eventName))
-                || await base.OnPublishEventAsync(eventName);
     }
 }

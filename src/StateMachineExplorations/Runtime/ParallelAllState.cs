@@ -13,14 +13,16 @@
             Func<string, Task> onEnterAction,
             Func<string, Task> onExitAction,
             Func<string, Task> onCancelledAction,
-            IEnumerable<EventStateBase> subStates)
-            : base(name, onEnterAction, onExitAction, onCancelledAction, subStates)
+            IEnumerable<StateBase> regions)
+            : base(name, onEnterAction, onExitAction, onCancelledAction, regions)
         {
         }
 
-        protected override async Task WhenSubStates(IEnumerable<Task<Transition>> subStates)
+        protected override async Task<Transition> ExecuteRegionsAsync(CancellationToken cancellationToken, IEnumerable<StateBase> regions)
         {
-            await Task.WhenAll(subStates);
+            await Task.WhenAll(regions.Select(s => s.ExecuteAsync(cancellationToken))).ConfigureAwait(false);
+
+            return null;
         }
     }
 }

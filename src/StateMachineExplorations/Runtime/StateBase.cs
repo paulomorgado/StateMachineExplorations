@@ -34,33 +34,39 @@
         {
             this.EnsureNotExcuting();
 
-            this.executingTask = this.OnExecuteAsync(cancellationToken);
-
-            return await this.executingTask.ConfigureAwait(false);
-        }
-
-        protected virtual async Task<Transition> OnExecuteAsync(CancellationToken cancellationToken)
-        {
-            Transition transition = null;
-
-            await this.EnterStepAsync(cancellationToken);
-
-            if (!cancellationToken.IsCancellationRequested)
-            {
-                transition = await this.ExecuteLoopAsync(cancellationToken);
-            }
-
-            if (!cancellationToken.IsCancellationRequested)
-            {
-                await this.ExitStepAsync(cancellationToken);
-            }
-
             if (cancellationToken.IsCancellationRequested)
             {
-                await this.CancelledStepAsync(cancellationToken);
+                return null;
             }
 
-            return cancellationToken.IsCancellationRequested ? null : transition;
+            this.executingTask = this.EnterAndExecuteAsync(cancellationToken);
+
+            var transition = await this.executingTask.ConfigureAwait(false);
+
+            return await ExitOrCancelAsync(cancellationToken) ? transition : null;
+        }
+
+        internal async Task<Transition> EnterAndExecuteAsync(CancellationToken cancellationToken)
+        {
+            await this.EnterStepAsync(cancellationToken);
+
+            return !cancellationToken.IsCancellationRequested
+                ? await this.ExecuteLoopAsync(cancellationToken).ConfigureAwait(false)
+                : null;
+        }
+
+        internal async Task<bool> ExitOrCancelAsync(CancellationToken cancellationToken)
+        {
+            if (cancellationToken.IsCancellationRequested)
+            {
+                await this.CancelledStepAsync(cancellationToken).ConfigureAwait(false);
+                return false;
+            }
+            else
+            {
+                await this.ExitStepAsync(cancellationToken).ConfigureAwait(false);
+                return true;
+            }
         }
 
         [DebuggerStepThrough]
@@ -146,14 +152,13 @@
                     {
                         await transition.ExecuteActionAsync(cancellationToken, this.Name, this.Name);
                     }
-
-                } while (!cancellationToken.IsCancellationRequested && transition != null && transition.Target == null);
+                }
+                while (!cancellationToken.IsCancellationRequested && transition != null && transition.Target == null);
 
                 return transition;
             }
             catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
             {
-
                 return null;
             }
         }

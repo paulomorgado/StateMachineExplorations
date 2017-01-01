@@ -8,44 +8,29 @@
 
     public abstract class ParallelStateBase : EventStateBase
     {
-        private readonly IEnumerable<StateBase> subStates;
+        private readonly IEnumerable<StateBase> regions;
 
         protected ParallelStateBase(
             string name,
             Func<string, Task> onEnterAction,
             Func<string, Task> onExitAction,
             Func<string, Task> onCancelledAction,
-            IEnumerable<StateBase> subStates)
+            IEnumerable<StateBase> regions)
             : base(name, onEnterAction, onExitAction, onCancelledAction)
         {
-            this.subStates = subStates;
+            this.regions = regions;
         }
 
         protected override async Task<Transition> ExecuteEventStepAsync(CancellationToken cancellationToken)
         {
-            using (var cancellationTokenSource = new CancellationTokenSource())
-            {
-                using (var combinedCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(
-                    cancellationToken,
-                    cancellationTokenSource.Token))
-                {
-                    await this.WhenSubStates(this.subStates.Select(s => s.ExecuteAsync(cancellationToken)));
-
-                    cancellationTokenSource.Cancel();
-                }
-            }
-
-            return null;
+            return await ExecuteRegionsAsync(cancellationToken, this.regions);
         }
 
-        protected abstract Task WhenSubStates(IEnumerable<Task<Transition>> subStates);
+        protected abstract Task<Transition> ExecuteRegionsAsync(CancellationToken cancellationToken, IEnumerable<StateBase> regions);
 
-        protected internal override async Task<bool> OnPublishEventAsync(string eventName) 
-            => (await Task.WhenAll(
-                this.subStates
-                    .OfType<EventStateBase>()
-                    .Select(s => s.OnPublishEventAsync(eventName))
-                )).Any(a => a)
-                && await base.OnPublishEventAsync(eventName);
+        protected internal override async Task<bool?> OnPublishEventAsync(string eventName)
+            => (await Task.WhenAll(this.regions.OfType<EventStateBase>().Select(s => s.OnPublishEventAsync(eventName)))).Any(a => a.GetValueOrDefault())
+                ? true
+                : await base.OnPublishEventAsync(eventName);
     }
 }

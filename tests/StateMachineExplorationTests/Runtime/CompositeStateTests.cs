@@ -12,6 +12,8 @@
         {
             var logger = new TestLogger();
 
+            var tcs2 = new TaskCompletionSource<object>();
+
             var state1 = new SimpleState(
                 "state1",
                 logger.StateEnterAction,
@@ -22,7 +24,7 @@
             var state2 = new SimpleState(
                 "state2",
                 logger.StateEnterAction,
-                logger.StateExecutionAction,
+                async s => { await logger.StateExecutionAction(s); tcs2.SetResult(null); },
                 logger.StateExitAction,
                 logger.StateCancelledAction);
 
@@ -52,7 +54,7 @@
             Assert.True(handled);
             Assert.False(task.IsCompleted);
 
-            await Task.Delay(10);
+            await tcs2.Task;
 
             handled = await compositeState.PublishEventAsync("E2");
 

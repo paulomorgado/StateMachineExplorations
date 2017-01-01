@@ -69,8 +69,7 @@
                       });
 
                     x.CallsBaseMethods();
-                }
-            );
+                });
 
             A.CallTo(stateMock)
                 .Where(call => call.Method.Name == "EnterStepAsync")
@@ -160,8 +159,7 @@
                       });
 
                     x.CallsBaseMethods();
-                }
-            );
+                });
 
             A.CallTo(stateMock)
                 .Where(call => call.Method.Name == "EnterStepAsync")
@@ -251,8 +249,7 @@
                       });
 
                     x.CallsBaseMethods();
-                }
-            );
+                });
 
             A.CallTo(stateMock)
                 .Where(call => call.Method.Name == "EnterStepAsync")
@@ -342,8 +339,7 @@
                       });
 
                     x.CallsBaseMethods();
-                }
-            );
+                });
 
             A.CallTo(stateMock)
                 .Where(call => call.Method.Name == "EnterStepAsync")

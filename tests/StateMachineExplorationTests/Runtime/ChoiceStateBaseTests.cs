@@ -2,8 +2,7 @@
 {
     using System.Threading;
     using System.Threading.Tasks;
-    using Moq;
-    using Moq.Protected;
+    using FakeItEasy;
     using Morgados.StateMachine.Runtime;
     using Xunit;
 
@@ -14,21 +13,27 @@
         {
             var logger = new TestLogger();
 
-            var selectedTransition = new Transition("Selected", Mock.Of<ITransitionTarget>(), logger.TransitionAction, null);
-            var elseTransition = new Transition("Else", Mock.Of<ITransitionTarget>(), logger.TransitionAction, null);
+            var selectedTransition = new Transition("Selected", A.Fake<ITransitionTarget>(), logger.TransitionAction, null);
+            var elseTransition = new Transition("Else", A.Fake<ITransitionTarget>(), logger.TransitionAction, null);
 
-            var stateMock = new Mock<ChoiceStateBase>(
-                "test",
-                logger.StateEnterAction,
-                logger.StateExitAction,
-                logger.StateCancelledAction,
-                elseTransition)
-            {
-                CallBase = true,
-            };
-            stateMock.Protected().Setup<Transition>("SelectTransition").Returns(selectedTransition);
+            var state = A.Fake<ChoiceStateBase>(builder =>
+                builder
+                    .WithArgumentsForConstructor(new object[]
+                        {
+                            "test",
+                            logger.StateEnterAction,
+                            logger.StateExitAction,
+                            logger.StateCancelledAction,
+                            elseTransition,
+                        })
+                    .CallsBaseMethods());
 
-            var actual = await stateMock.Object.ExecuteAsync(CancellationToken.None);
+            A.CallTo(state)
+                .Where(call => call.Method.Name == "SelectTransition")
+                .WithReturnType<Transition>()
+                .Returns(selectedTransition);
+
+            var actual = await state.ExecuteAsync(CancellationToken.None);
 
             Assert.Equal(selectedTransition, actual);
 
@@ -40,19 +45,26 @@
         {
             var logger = new TestLogger();
 
-            var elseTransition = new Transition("Else", Mock.Of<ITransitionTarget>(), logger.TransitionAction, null);
+            var elseTransition = new Transition("Else", A.Fake<ITransitionTarget>(), logger.TransitionAction, null);
 
-            var stateMock = new Mock<ChoiceStateBase>(
-                "test",
-                logger.StateEnterAction,
-                logger.StateExitAction,
-                logger.StateCancelledAction,
-                elseTransition)
-            {
-                CallBase = true,
-            };
+            var state = A.Fake<ChoiceStateBase>(builder =>
+                builder
+                    .WithArgumentsForConstructor(new object[]
+                        {
+                            "test",
+                            logger.StateEnterAction,
+                            logger.StateExitAction,
+                            logger.StateCancelledAction,
+                            elseTransition,
+                        })
+                    .CallsBaseMethods());
 
-            var actual = await stateMock.Object.ExecuteAsync(CancellationToken.None);
+            A.CallTo(state)
+                .Where(call => call.Method.Name == "SelectTransition")
+                .WithReturnType<Transition>()
+                .Returns(null);
+
+            var actual = await state.ExecuteAsync(CancellationToken.None);
 
             Assert.Equal(elseTransition, actual);
 
@@ -66,29 +78,41 @@
 
             using (var cts = new CancellationTokenSource())
             {
-                cts.Cancel();
+                var selectedTransition = new Transition("Selected", A.Fake<ITransitionTarget>(), logger.TransitionAction, null);
+                var elseTransition = new Transition("Else", A.Fake<ITransitionTarget>(), logger.TransitionAction, null);
 
-                var selectedTransition = new Transition("Selected", Mock.Of<ITransitionTarget>(), logger.TransitionAction, null);
-                var elseTransition = new Transition("Else", Mock.Of<ITransitionTarget>(), logger.TransitionAction, null);
+                var state = A.Fake<ChoiceStateBase>(builder =>
+                    builder
+                        .WithArgumentsForConstructor(new object[]
+                            {
+                                "test",
+                                logger.StateEnterAction,
+                                logger.StateExitAction,
+                                logger.StateCancelledAction,
+                                elseTransition,
+                            })
+                        .CallsBaseMethods());
 
-                var stateMock = new Mock<ChoiceStateBase>(
-                    "test",
-                    logger.StateEnterAction,
-                    logger.StateExitAction,
-                    logger.StateCancelledAction,
-                    elseTransition)
-                {
-                    CallBase = true,
-                };
+                // TODO: FakeItEasy bug
+                //A.CallTo(state)
+                //    .Where(call => call.Method.Name == "ExecuteStepAsync")
+                //    .WithReturnType<Task<Transition>>()
+                //    .Invokes(() => cts.Cancel())
+                //    .CallsBaseMethod();
 
-                stateMock.Protected().Setup<Transition>("SelectTransition").Returns(selectedTransition);
+                A.CallTo(state)
+                    .Where(call => call.Method.Name == "SelectTransition")
+                    .WithReturnType<Transition>()
+                    // TODO: FakeItEasy bug
+                    //.Returns(selectedTransition);
+                    .ReturnsLazily(() => { cts.Cancel(); return selectedTransition; });
 
-                var actual = await stateMock.Object.ExecuteAsync(cts.Token);
+                var actual = await state.ExecuteAsync(cts.Token);
 
                 Assert.Null(actual);
             }
 
-            Assert.Equal("!test;", logger.ToString());
+            Assert.Equal(">test;!test;", logger.ToString());
         }
 
         [Fact]
@@ -96,28 +120,39 @@
         {
             var logger = new TestLogger();
 
-            var elseTransition = new Transition("Else", Mock.Of<ITransitionTarget>(), logger.TransitionAction, null);
-
             using (var cts = new CancellationTokenSource())
             {
-                cts.Cancel();
+                var state = A.Fake<ChoiceStateBase>(builder =>
+                    builder
+                        .WithArgumentsForConstructor(new object[]
+                            {
+                                "test",
+                                logger.StateEnterAction,
+                                logger.StateExitAction,
+                                logger.StateCancelledAction,
+                                new Transition("Else", A.Fake<ITransitionTarget>(), logger.TransitionAction, null),
+                            })
+                        .CallsBaseMethods());
 
-                var stateMock = new Mock<ChoiceStateBase>(
-                "test",
-                logger.StateEnterAction,
-                logger.StateExitAction,
-                logger.StateCancelledAction,
-                elseTransition)
-                {
-                    CallBase = true,
-                };
+                // TODO: FakeItEasy bug
+                //A.CallTo(state)
+                //    .Where(call => call.Method.Name == "ExecuteStepAsync")
+                //    .WithReturnType<Task<Transition>>()
+                //    .Invokes(() => cts.Cancel())
+                //    .CallsBaseMethod();
 
-                var actual = await stateMock.Object.ExecuteAsync(cts.Token);
+                // TODO: FakeItEasy bug
+                A.CallTo(state)
+                    .Where(call => call.Method.Name == "SelectTransition")
+                    .WithReturnType<Transition>()
+                    .ReturnsLazily(() => { cts.Cancel(); return (Transition)null; });
+
+                var actual = await state.ExecuteAsync(cts.Token);
 
                 Assert.Null(actual);
             }
 
-            Assert.Equal("!test;", logger.ToString());
+            Assert.Equal(">test;!test;", logger.ToString());
         }
     }
 }

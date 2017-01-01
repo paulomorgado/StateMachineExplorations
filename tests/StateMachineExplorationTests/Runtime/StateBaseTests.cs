@@ -3,109 +3,93 @@
     using System;
     using System.Threading;
     using System.Threading.Tasks;
-    using Moq;
-    using Moq.Protected;
+    using FakeItEasy;
     using Morgados.StateMachine.Runtime;
     using Xunit;
 
     public class StateBaseTests
     {
         [Fact]
-        public async Task StateBaseWithoutEventTransitions_WithoutCancellation_RunsEnterAndExitActions()
+        public async Task StateBase_WithoutCancellation_RunsEnterAndExitActions()
         {
             var logger = new TestLogger();
 
-            var stateMock = new Mock<StateBase>(
-                "test",
-                logger.StateEnterAction,
-                logger.StateExitAction,
-                logger.StateCancelledAction)
-            {
-                CallBase = true,
-            };
+            var state = A.Fake<StateBase>(builder =>
+                builder.WithArgumentsForConstructor(new object[]
+                    {
+                                "test",
+                                logger.StateEnterAction,
+                                logger.StateExitAction,
+                                logger.StateCancelledAction,
+                    })
+                .CallsBaseMethods());
 
-            await stateMock.Object.ExecuteAsync(CancellationToken.None);
+            await state.ExecuteAsync(CancellationToken.None);
 
             Assert.Equal(">test;<test;", logger.ToString());
         }
 
         [Fact]
-        public async Task StateBaseWithoutEventTransitions_WithoutCancellationAndNonTargettedTransitions_RunsEnterAndExecutesTransitionsUntilNullTransitionAndExitActionsAndReturnsNull()
+        public async Task StateBase_WithoutCancellationAndNonTargettedTransitions_RunsEnterAndExecutesTransitionsUntilNullTransitionAndExitActionsAndReturnsNull()
         {
             var logger = new TestLogger();
 
             var nonTargetedTransition = new Transition("NonTargeted", null, logger.TransitionAction, null);
 
-            var stateMock = new Mock<StateBase>(
-                "test",
-                logger.StateEnterAction,
-                logger.StateExitAction,
-                logger.StateCancelledAction)
-            {
-                CallBase = true,
-            };
+            var state = A.Fake<StateBase>(builder =>
+                builder
+                    .WithArgumentsForConstructor(new object[]
+                        {
+                            "test",
+                            logger.StateEnterAction,
+                            logger.StateExitAction,
+                            logger.StateCancelledAction,
+                        })
+                    .CallsBaseMethods());
 
-            stateMock.Protected()
-                .Setup<Task<Transition>>("ExecuteStepAsync", It.IsAny<CancellationToken>())
-                .ReturnsAsync(nonTargetedTransition)
-                .Callback(() => stateMock.Protected()
-                    .Setup<Task<Transition>>("ExecuteStepAsync", It.IsAny<CancellationToken>())
-                    .ReturnsAsync(nonTargetedTransition)
-                    .Callback(() => stateMock.Protected()
-                        .Setup<Task<Transition>>("ExecuteStepAsync", It.IsAny<CancellationToken>())
-                        .ReturnsAsync(null)
-                        .Verifiable())
-                    .Verifiable())
-                .Verifiable();
+            A.CallTo(state)
+                .Where(call => call.Method.Name == "ExecuteStepAsync")
+                .WithReturnType<Task<Transition>>()
+                .ReturnsNextFromSequence(nonTargetedTransition, nonTargetedTransition, null);
 
-            var actual = await stateMock.Object.ExecuteAsync(CancellationToken.None);
+            var actual = await state.ExecuteAsync(CancellationToken.None);
 
             Assert.Equal(null, actual);
             Assert.Equal(">test;@test;@test;<test;", logger.ToString());
-
-            stateMock.VerifyAll();
         }
 
         [Fact]
-        public async Task StateBaseWithoutEventTransitions_WithoutCancellationAndNonTargettedTransitions_RunsEnterAndExecutesTransitionsUntilTargettedTransitionAndExitActionsAndReturnsTargettedTransitionWithoutExecuting()
+        public async Task StateBase_WithoutCancellationAndNonTargettedTransitions_RunsEnterAndExecutesTransitionsUntilTargettedTransitionAndExitActionsAndReturnsTargettedTransitionWithoutExecuting()
         {
             var logger = new TestLogger();
 
-            var targetedTransition = new Transition("Targeted", Mock.Of<ITransitionTarget>(), logger.TransitionAction, null);
+            var targetedTransition = new Transition("Targeted", A.Fake<ITransitionTarget>(), logger.TransitionAction, null);
             var nonTargetedTransition = new Transition("NonTargeted", null, logger.TransitionAction, null);
 
-            var stateMock = new Mock<StateBase>(
-                "test",
-                logger.StateEnterAction,
-                logger.StateExitAction,
-                logger.StateCancelledAction)
-            {
-                CallBase = true,
-            };
+            var state = A.Fake<StateBase>(builder =>
+                builder
+                    .WithArgumentsForConstructor(new object[]
+                        {
+                            "test",
+                            logger.StateEnterAction,
+                            logger.StateExitAction,
+                            logger.StateCancelledAction,
+                        })
+                    .CallsBaseMethods());
 
-            stateMock.Protected()
-                .Setup<Task<Transition>>("ExecuteStepAsync", It.IsAny<CancellationToken>())
-                .ReturnsAsync(nonTargetedTransition)
-                .Callback(() => stateMock.Protected()
-                    .Setup<Task<Transition>>("ExecuteStepAsync", It.IsAny<CancellationToken>())
-                    .ReturnsAsync(nonTargetedTransition)
-                    .Callback(() => stateMock.Protected()
-                        .Setup<Task<Transition>>("ExecuteStepAsync", It.IsAny<CancellationToken>())
-                        .ReturnsAsync(targetedTransition)
-                        .Verifiable())
-                    .Verifiable())
-                .Verifiable();
+            A.CallTo(state)
+                .Where(call => call.Method.Name == "ExecuteStepAsync")
+                .WithReturnType<Task<Transition>>()
+                .ReturnsNextFromSequence(nonTargetedTransition, nonTargetedTransition, targetedTransition);
 
-            var actual = await stateMock.Object.ExecuteAsync(CancellationToken.None);
+            var actual = await state.ExecuteAsync(CancellationToken.None);
 
             Assert.Equal(targetedTransition, actual);
             Assert.Equal(">test;@test;@test;<test;", logger.ToString());
-
-            stateMock.VerifyAll();
         }
 
         [Fact]
-        public async Task StateBaseWithoutEventTransitions_WithCancellationBeforeExecution_RunsOnlyCancelledAction()
+        public async Task StateBase_WithCancellationBeforeExecution_RunsNodAction()
         {
             var logger = new TestLogger();
 
@@ -113,90 +97,126 @@
             {
                 cts.Cancel();
 
-                var stateMock = new Mock<StateBase>(
-                    "test",
-                    logger.StateEnterAction,
-                    logger.StateExitAction,
-                    logger.StateCancelledAction)
-                {
-                    CallBase = true,
-                };
+                var state = A.Fake<StateBase>(builder =>
+                    builder
+                        .WithArgumentsForConstructor(new object[]
+                            {
+                                "test",
+                                logger.StateEnterAction,
+                                logger.StateExitAction,
+                                logger.StateCancelledAction,
+                            })
+                        .CallsBaseMethods());
 
-                await stateMock.Object.ExecuteAsync(cts.Token);
+                await state.ExecuteAsync(cts.Token);
             }
 
-            Assert.Equal("!test;", logger.ToString());
+            Assert.Equal(string.Empty, logger.ToString());
         }
 
         [Fact]
-        public async Task StateBaseWithoutEventTransitions_WithCancellationDuringEnter_RunsEnterAndCancelledActions()
+        public async Task StateBase_WithCancellationDuringEnter_RunsEnterAndCancelledActions()
         {
             var logger = new TestLogger();
 
             using (var cts = new CancellationTokenSource())
             {
-                var stateMock = new Mock<StateBase>(
-                    "test",
-                    new Func<string, Task>(async s => { await logger.StateEnterAction(s); cts.Cancel(); }),
-                    logger.StateExitAction,
-                    logger.StateCancelledAction)
-                {
-                    CallBase = true,
-                };
+                var state = A.Fake<StateBase>(builder =>
+                    builder
+                        .WithArgumentsForConstructor(new object[]
+                            {
+                                "test",
+                                new Func<string, Task>(async s => { await logger.StateEnterAction(s); cts.Cancel(); }),
+                                logger.StateExitAction,
+                                logger.StateCancelledAction,
+                            })
+                        .CallsBaseMethods());
 
-                await stateMock.Object.ExecuteAsync(cts.Token);
+                await state.ExecuteAsync(cts.Token);
             }
 
             Assert.Equal(">test;!test;", logger.ToString());
         }
 
         [Fact]
-        public async Task StateBaseWithoutEventTransitions_WithCancellationDuringExit_RunsEnterAndExitAndCancelledActions()
+        public async Task StateBase_WithCancellationDuringExit_RunsEnterAndExitActions()
         {
             var logger = new TestLogger();
 
             using (var cts = new CancellationTokenSource())
             {
-                var stateMock = new Mock<StateBase>(
-                    "test",
-                    logger.StateEnterAction,
-                    new Func<string, Task>(async s => { await logger.StateExitAction(s); cts.Cancel(); }),
-                    logger.StateCancelledAction)
-                {
-                    CallBase = true,
-                };
+                var state = A.Fake<StateBase>(builder =>
+                    builder
+                        .WithArgumentsForConstructor(new object[]
+                            {
+                                "test",
+                                logger.StateEnterAction,
+                                new Func<string, Task>(async s => { await logger.StateExitAction(s); cts.Cancel(); }),
+                                logger.StateCancelledAction,
+                            })
+                        .CallsBaseMethods());
 
-                await stateMock.Object.ExecuteAsync(cts.Token);
+                await state.ExecuteAsync(cts.Token);
             }
 
-            Assert.Equal(">test;<test;!test;", logger.ToString());
+            Assert.Equal(">test;<test;", logger.ToString());
         }
 
         [Fact]
-        public void StateBaseWithoutEventTransitions_ExecutingState_ThrowsInvalidOperationException()
+        public async Task StateBase_WithCancellationDuringExecute_RunsEnterAndExitActions()
+        {
+            var logger = new TestLogger();
+
+            using (var cts = new CancellationTokenSource())
+            {
+                var state = A.Fake<StateBase>(builder =>
+                    builder
+                        .WithArgumentsForConstructor(new object[]
+                            {
+                                "test",
+                                logger.StateEnterAction,
+                                logger.StateExitAction,
+                                logger.StateCancelledAction,
+                            })
+                        .CallsBaseMethods());
+
+                A.CallTo(state)
+                    .Where(call => call.Method.Name == "ExecuteStepAsync")
+                    .WithReturnType<Task<Transition>>()
+                    .Invokes(() => cts.Cancel());
+
+                await state.ExecuteAsync(cts.Token);
+            }
+
+            Assert.Equal(">test;!test;", logger.ToString());
+        }
+
+        [Fact]
+        public void StateBase_ExecutingState_ThrowsInvalidOperationException()
         {
             var logger = new TestLogger();
 
             var tcs = new TaskCompletionSource<Transition>();
 
-            var stateMock = new Mock<StateBase>(
-                "test",
-                logger.StateEnterAction,
-                logger.StateExitAction,
-                logger.StateCancelledAction)
-            {
-                CallBase = true,
-            };
-            stateMock.Protected()
-                .Setup<Task<Transition>>("ExecuteStepAsync", It.IsAny<CancellationToken>())
-                .Returns(tcs.Task)
-                .Verifiable();
+            var state = A.Fake<StateBase>(builder =>
+                builder
+                    .WithArgumentsForConstructor(new object[]
+                        {
+                            "test",
+                            logger.StateEnterAction,
+                            logger.StateExitAction,
+                            logger.StateCancelledAction,
+                        })
+                    .CallsBaseMethods());
 
-            stateMock.Object.ExecuteAsync(CancellationToken.None);
+            A.CallTo(state)
+                .Where(call => call.Method.Name == "ExecuteStepAsync")
+                .WithReturnType<Task<Transition>>()
+                .Returns(tcs.Task);
 
-            Assert.ThrowsAsync<InvalidOperationException>(() => stateMock.Object.ExecuteAsync(CancellationToken.None));
+            state.ExecuteAsync(CancellationToken.None);
 
-            stateMock.VerifyAll();
+            Assert.ThrowsAsync<InvalidOperationException>(() => state.ExecuteAsync(CancellationToken.None));
         }
     }
 }

@@ -22,7 +22,7 @@
         {
         }
 
-        public async Task<bool> PublishEventAsync(string eventName)
+        public async Task<bool? > PublishEventAsync(string eventName)
         {
             this.EnsureExcuting();
 
@@ -42,13 +42,13 @@
             transitionList.AddLast(transition);
         }
 
-        protected internal virtual async Task<bool> OnPublishEventAsync(string eventName)
+        protected internal virtual async Task<bool?> OnPublishEventAsync(string eventName)
         {
             var eventChannel = this.eventChannel;
 
             if (eventChannel == null)
             {
-                return false;
+                return null;
             }
 
             if (this.transitions.TryGetValue(eventName, out var transitionList))
@@ -65,11 +65,11 @@
             return false;
         }
 
-        protected override sealed async Task<Transition> OnExecuteAsync(CancellationToken cancellationToken)
+        protected override sealed async Task<Transition> ExecuteStepAsync(CancellationToken cancellationToken)
         {
             if (this.transitions.Count == 0)
             {
-                return await base.OnExecuteAsync(cancellationToken);
+                return await this.ExecuteEventStepAsync(cancellationToken).ConfigureAwait(false);
             }
 
             this.cancellationTokenSource = new CancellationTokenSource();
@@ -79,19 +79,24 @@
 
             var currentCancellationToken = combinedCancellationTokenSource.Token;
 
-            Interlocked.Exchange(ref this.eventChannel, new EventChannel<Transition>(currentCancellationToken));
+            Interlocked.Exchange(ref this.eventChannel, new EventChannel<Transition>());
 
             try
             {
-                currentCancellationToken.Register(() => this.eventChannel?.Acknowledge(false));
+                currentCancellationToken.Register(() =>
+                    {
+                        var eventChannel = this.eventChannel;
+                        Interlocked.Exchange(ref this.eventChannel, null);
+                        eventChannel?.Acknowledge(null);
+                    });
 
-                return await base.OnExecuteAsync(currentCancellationToken);
+                return await this.ExecuteStepWithTransitionsAsync(currentCancellationToken).ConfigureAwait(false);
             }
             finally
             {
                 var eventChannel = this.eventChannel;
                 Interlocked.Exchange(ref this.eventChannel, null);
-                eventChannel.Acknowledge(false);
+                eventChannel?.Acknowledge(null);
 
                 combinedCancellationTokenSource.Dispose();
 
@@ -99,11 +104,6 @@
                 this.cancellationTokenSource = null;
             }
         }
-
-        protected override sealed async Task<Transition> ExecuteStepAsync(CancellationToken cancellationToken)
-            => this.transitions.Count == 0
-                ? await this.ExecuteEventStepAsync(cancellationToken).ConfigureAwait(false)
-                : await this.ExecuteStepWithTransitionsAsync(cancellationToken).ConfigureAwait(false);
 
         private async Task<Transition> ExecuteStepWithTransitionsAsync(CancellationToken cancellationToken)
         {
@@ -117,27 +117,22 @@
 
             try
             {
-                var stateTransitionTask = this.ExecuteEventStepAsync(cancellationToken);
+                var stateTask = this.ExecuteEventStepAsync(cancellationToken);
+                var eventTask = this.eventChannel.ReceiveAsync();
+                var transitionTask = await Task.WhenAny(eventTask, stateTask);
 
-                var transitionTask = await Task.WhenAny(this.eventChannel.ReceiveAsync(), stateTransitionTask);
-
-                if (transitionTask != stateTransitionTask)
+                if (transitionTask == stateTask)
                 {
-                    this.cancellationTokenSource.Cancel();
-                }
-                else
-                {
-                    var transition = await stateTransitionTask.ConfigureAwait(false);
+                    var transition = await stateTask.ConfigureAwait(false);
 
                     if (transition != null)
                     {
-                        this.eventChannel.Acknowledge(false);
                         return transition;
                     }
                 }
 
                 {
-                    var transition = await this.eventChannel.ReceiveAsync().ConfigureAwait(false);
+                    var transition = await eventTask.ConfigureAwait(false);
                     this.eventChannel.Acknowledge(true);
                     return transition;
                 }

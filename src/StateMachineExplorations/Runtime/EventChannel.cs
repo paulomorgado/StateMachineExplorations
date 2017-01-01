@@ -6,14 +6,12 @@
 
     public class EventChannel<TMessage>
     {
-        private readonly CancellationToken cancellationToken;
         private readonly object sync = new object();
         private TaskCompletionSource<TMessage> publish;
-        private TaskCompletionSource<bool> acknowledge;
+        private TaskCompletionSource<bool?> acknowledge;
 
-        public EventChannel(CancellationToken cancellationToken)
+        public EventChannel()
         {
-            this.cancellationToken = cancellationToken;
         }
 
         private void EnusreCreated()
@@ -23,9 +21,7 @@
                 if (this.publish == null)
                 {
                     this.publish = new TaskCompletionSource<TMessage>(TaskCreationOptions.None);
-                    this.acknowledge = new TaskCompletionSource<bool>(TaskCreationOptions.None);
-
-                    this.cancellationToken.Register(OnCancellationTokenCancelled);
+                    this.acknowledge = new TaskCompletionSource<bool?>(TaskCreationOptions.None);
                 }
             }
         }
@@ -37,7 +33,7 @@
             return this.publish.Task;
         }
 
-        public async Task<bool> SendAsync(TMessage message)
+        public async Task<bool?> SendAsync(TMessage message)
         {
             this.EnusreCreated();
 
@@ -48,7 +44,7 @@
             return await acknowledge.Task;
         }
 
-        public void Acknowledge(bool handled)
+        public void Acknowledge(bool? handled)
         {
             try
             {
@@ -59,12 +55,6 @@
                 this.publish = null;
                 this.acknowledge = null;
             }
-        }
-
-        private void OnCancellationTokenCancelled()
-        {
-            this.publish?.TrySetCanceled(this.cancellationToken);
-            this.acknowledge?.TrySetResult(false);
         }
     }
 }
