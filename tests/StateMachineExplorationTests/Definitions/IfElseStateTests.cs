@@ -54,15 +54,19 @@
 
             var runtimeState = state.BuildRuntimeState(states);
 
-            await runtimeState.ExecuteAsync(CancellationToken.None);
+            var runtimeTransition = await runtimeState.ExecuteAsync(CancellationToken.None);
 
-            Assert.Equal(">test;@test->state1;>state1;*state1;<state1;<test;", tracker.ToString());
+            Assert.Equal(state.ElseTransition.Target.Name, runtimeTransition.Target.Name);
+            Assert.Equal(">test;<test;", tracker.ToString());
 
             predicateValue = true;
 
-            await runtimeState.ExecuteAsync(CancellationToken.None);
+            tracker.Clear();
 
-            Assert.Equal(">test;@test->state2;>state2;*state2;<state2;<test;", tracker.ToString());
+            runtimeTransition = await runtimeState.ExecuteAsync(CancellationToken.None);
+
+            Assert.Equal(state.TrueTransition.Target.Name, runtimeTransition.Target.Name);
+            Assert.Equal(">test;<test;", tracker.ToString());
         }
     }
 }
