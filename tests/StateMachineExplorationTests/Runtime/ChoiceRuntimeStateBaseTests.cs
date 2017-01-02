@@ -3,13 +3,13 @@
     using System.Threading;
     using System.Threading.Tasks;
     using FakeItEasy;
-    using Morgados.StateMachine.Runtime;
+    using Morgados.StateMachines.Runtime;
     using Xunit;
 
-    public class ChoiceStateBaseTests
+    public class ChoiceRuntimeStateBaseTests
     {
         [Fact]
-        public async Task ChoiceStateBase_WithSelectedTransitionAndNotCancelled_ReturnsSelectedTransitionAndRunsEnterAndExitActions()
+        public async Task ChoiceRuntimeStateBase_WithSelectedTransitionAndNotCancelled_ReturnsSelectedTransitionAndRunsEnterAndExitActions()
         {
             var tracker = new TestTracker();
 
@@ -41,7 +41,7 @@
         }
 
         [Fact]
-        public async Task ChoiceStateBase_WithoutSelectedTransitionAndNotCancelled_ReturnElseTransitionAndRunsEnterAndExitActions()
+        public async Task ChoiceRuntimeStateBase_WithoutSelectedTransitionAndNotCancelled_ReturnElseTransitionAndRunsEnterAndExitActions()
         {
             var tracker = new TestTracker();
 
@@ -72,7 +72,7 @@
         }
 
         [Fact]
-        public async Task ChoiceStateBase_WithSelectedTransitionAndCancelled_ReturnNullAndRunsCancelledAction()
+        public async Task ChoiceRuntimeStateBase_WithSelectedTransitionAndCancelled_ReturnNullAndRunsCancelledAction()
         {
             var tracker = new TestTracker();
 
@@ -116,7 +116,7 @@
         }
 
         [Fact]
-        public async Task ChoiceStateBase_WithoutSelectedTransitionAndCancelled_ReturnNullAndRunsCancelledAction()
+        public async Task ChoiceRuntimeStateBase_WithoutSelectedTransitionAndCancelled_ReturnNullAndRunsCancelledAction()
         {
             var tracker = new TestTracker();
 

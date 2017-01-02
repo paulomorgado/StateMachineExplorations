@@ -5,15 +5,15 @@
     using System.Threading.Tasks;
     using Moq;
     using Moq.Protected;
-    using Morgados.StateMachine.Runtime;
+    using Morgados.StateMachines.Runtime;
     using Xunit;
     using System.Reflection;
     using FakeItEasy;
 
-    public class EventStateBaseTests
+    public class EventRuntimeStateBaseTests
     {
         [Fact]
-        public async Task EventStateBase_TriggerWhenNotExecuting_ThrowsInvalidOperationException()
+        public async Task EventRuntimeStateBase_TriggerWhenNotExecuting_ThrowsInvalidOperationException()
         {
             var state = new Mock<EventRuntimeStateBase>("test", null, null, null).Object;
 

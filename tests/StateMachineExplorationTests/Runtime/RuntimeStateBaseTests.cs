@@ -4,13 +4,13 @@
     using System.Threading;
     using System.Threading.Tasks;
     using FakeItEasy;
-    using Morgados.StateMachine.Runtime;
+    using Morgados.StateMachines.Runtime;
     using Xunit;
 
-    public class StateBaseTests
+    public class RuntimeStateBaseTests
     {
         [Fact]
-        public async Task StateBase_WithoutCancellation_RunsEnterAndExitActions()
+        public async Task RuntimeStateBase_WithoutCancellation_RunsEnterAndExitActions()
         {
             var tracker = new TestTracker();
 
@@ -30,7 +30,7 @@
         }
 
         [Fact]
-        public async Task StateBase_WithoutCancellationAndNonTargettedTransitions_RunsEnterAndExecutesTransitionsUntilNullTransitionAndExitActionsAndReturnsNull()
+        public async Task RuntimeStateBase_WithoutCancellationAndNonTargettedTransitions_RunsEnterAndExecutesTransitionsUntilNullTransitionAndExitActionsAndReturnsNull()
         {
             var tracker = new TestTracker();
 
@@ -59,7 +59,7 @@
         }
 
         [Fact]
-        public async Task StateBase_WithoutCancellationAndNonTargettedTransitions_RunsEnterAndExecutesTransitionsUntilTargettedTransitionAndExitActionsAndReturnsTargettedTransitionWithoutExecuting()
+        public async Task RuntimeStateBase_WithoutCancellationAndNonTargettedTransitions_RunsEnterAndExecutesTransitionsUntilTargettedTransitionAndExitActionsAndReturnsTargettedTransitionWithoutExecuting()
         {
             var tracker = new TestTracker();
 
@@ -89,7 +89,7 @@
         }
 
         [Fact]
-        public async Task StateBase_WithCancellationBeforeExecution_RunsNodAction()
+        public async Task RuntimeStateBase_WithCancellationBeforeExecution_RunsNodAction()
         {
             var tracker = new TestTracker();
 
@@ -115,7 +115,7 @@
         }
 
         [Fact]
-        public async Task StateBase_WithCancellationDuringEnter_RunsEnterAndCancelledActions()
+        public async Task RuntimeStateBase_WithCancellationDuringEnter_RunsEnterAndCancelledActions()
         {
             var tracker = new TestTracker();
 
@@ -139,7 +139,7 @@
         }
 
         [Fact]
-        public async Task StateBase_WithCancellationDuringExit_RunsEnterAndExitActions()
+        public async Task RuntimeStateBase_WithCancellationDuringExit_RunsEnterAndExitActions()
         {
             var tracker = new TestTracker();
 
@@ -163,7 +163,7 @@
         }
 
         [Fact]
-        public async Task StateBase_WithCancellationDuringExecute_RunsEnterAndExitActions()
+        public async Task RuntimeStateBase_WithCancellationDuringExecute_RunsEnterAndExitActions()
         {
             var tracker = new TestTracker();
 
@@ -192,7 +192,7 @@
         }
 
         [Fact]
-        public void StateBase_ExecutingState_ThrowsInvalidOperationException()
+        public void RuntimeStateBase_ExecutingState_ThrowsInvalidOperationException()
         {
             var tracker = new TestTracker();
 

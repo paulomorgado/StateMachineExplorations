@@ -1,4 +1,4 @@
-﻿namespace Morgados.StateMachine.Definitions
+﻿namespace Morgados.StateMachines.Definitions
 {
     public enum ParallelModes { Any, All,}
 }

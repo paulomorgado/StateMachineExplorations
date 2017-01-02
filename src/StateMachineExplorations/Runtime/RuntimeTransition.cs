@@ -1,4 +1,4 @@
-﻿namespace Morgados.StateMachine.Runtime
+﻿namespace Morgados.StateMachines.Runtime
 {
     using System;
     using System.Diagnostics;
@@ -27,9 +27,9 @@
 
         public ITransitionTarget Target { get; }
 
-        public bool Guard(string soruce) => this.guard?.Invoke(soruce) ?? true;
+        public bool Guard(string source) => this.guard?.Invoke(source) ?? true;
 
-        public Task ExecuteActionAsync(CancellationToken cancellationToken, string soruce, string target)
-            => this.action?.Invoke(cancellationToken, soruce, target);
+        public Task ExecuteActionAsync(CancellationToken cancellationToken, string source, string target)
+            => this.action?.Invoke(cancellationToken, source, target);
     }
 }

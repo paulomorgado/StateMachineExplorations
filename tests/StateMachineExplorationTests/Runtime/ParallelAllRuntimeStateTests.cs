@@ -1,14 +1,14 @@
 ﻿namespace Morgados.StateMachineExploration.Tests.Runtime
 {
     using System.Threading;
-    using Morgados.StateMachine.Runtime;
+    using Morgados.StateMachines.Runtime;
     using Xunit;
     using System.Threading.Tasks;
 
-    public class ParallelAllStateTests
+    public class ParallelAllRuntimeStateTests
     {
         [Fact]
-        public async Task ParallelAllState_WithoutCancellationAndEventTransitions_ExecutesAllSubStates()
+        public async Task ParallelAllRuntimeState_WithoutCancellationAndEventTransitions_ExecutesAllSubStates()
         {
             var tracker = new TestTracker();
 

@@ -5,13 +5,13 @@
     using System.Threading.Tasks;
     using FakeItEasy;
     using Moq;
-    using Morgados.StateMachine.Runtime;
+    using Morgados.StateMachines.Runtime;
     using Xunit;
 
-    public class SwitchStateTests
+    public class SwitchRuntimeStateTests
     {
         [Fact]
-        public async Task SwitchState_WhenSelectorReturnsExistingOption_ReturnsTransitionForOption()
+        public async Task SwitchRuntimeState_WhenSelectorReturnsExistingOption_ReturnsTransitionForOption()
         {
             var tracker = new TestTracker();
 
@@ -38,7 +38,7 @@
         }
 
         [Fact]
-        public async Task SwitchState_WhenSelectorReturnsNonExistingOption_ReturnsElseTransition()
+        public async Task SwitchRuntimeState_WhenSelectorReturnsNonExistingOption_ReturnsElseTransition()
         {
             var tracker = new TestTracker();
 
@@ -59,7 +59,7 @@
         }
 
         [Fact]
-        public async Task SwitchState_WithSelectedTransitionAndCancelled_ReturnNullAndRunsCancelledAction()
+        public async Task SwitchRuntimeState_WithSelectedTransitionAndCancelled_ReturnNullAndRunsCancelledAction()
         {
             var tracker = new TestTracker();
 
@@ -88,7 +88,7 @@
         }
 
         [Fact]
-        public async Task SwitchState_WithoutSelectedTransitionAndCancelled_ReturnNullAndRunsCancelledAction()
+        public async Task SwitchRuntimeState_WithoutSelectedTransitionAndCancelled_ReturnNullAndRunsCancelledAction()
         {
             var tracker = new TestTracker();
 

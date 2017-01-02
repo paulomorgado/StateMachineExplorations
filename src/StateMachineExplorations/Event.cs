@@ -1,4 +1,4 @@
-﻿namespace Morgados.StateMachine
+﻿namespace Morgados.StateMachines
 {
     using System;
     using System.Collections.Generic;

@@ -3,20 +3,20 @@
     using System.Threading;
     using System.Threading.Tasks;
     using FakeItEasy;
-    using Morgados.StateMachine.Runtime;
+    using Morgados.StateMachines.Runtime;
     using Xunit;
 
-    public class IfStateTests
+    public class IfElseRuntimeStateTests
     {
         [Fact]
-        public async Task IfStat_WhenPredicateReturnsTrue_ReturnsTrueTransition()
+        public async Task IfElseRuntimeState_WhenPredicateReturnsTrue_ReturnsTrueTransition()
         {
             var tracker = new TestTracker();
 
             var trueTransition = new RuntimeTransition("True", A.Fake<ITransitionTarget>(), null, null);
             var elseTransition = new RuntimeTransition("False", A.Fake<ITransitionTarget>(), null, null);
 
-            var state = new IfRuntimeState(
+            var state = new IfElseRuntimeState(
                 "test",
                 tracker.StateEnterAction,
                 tracker.StateExitAction,
@@ -31,14 +31,14 @@
         }
 
         [Fact]
-        public async Task IfStat_WhenPredicateReturnsFalse_ReturnsElseTransition()
+        public async Task IfElseRuntimeState_WhenPredicateReturnsFalse_ReturnsElseTransition()
         {
             var tracker = new TestTracker();
 
             var trueTransition = new RuntimeTransition("True", A.Fake<ITransitionTarget>(), null, null);
             var elseTransition = new RuntimeTransition("False", A.Fake<ITransitionTarget>(), null, null);
 
-            var state = new IfRuntimeState(
+            var state = new IfElseRuntimeState(
                 "test",
                 tracker.StateEnterAction,
                 tracker.StateExitAction,
@@ -53,13 +53,13 @@
         }
 
         [Fact]
-        public async Task IfState_WhenPredicateReturnsTrueAndCancelled_ReturnNullAndRunsCancelledAction()
+        public async Task IfElseRuntimeState_WhenPredicateReturnsTrueAndCancelled_ReturnNullAndRunsCancelledAction()
         {
             var tracker = new TestTracker();
 
             using (var cts = new CancellationTokenSource())
             {
-                var state = new IfRuntimeState(
+                var state = new IfElseRuntimeState(
                     "test",
                     tracker.StateEnterAction,
                     tracker.StateExitAction,
@@ -77,13 +77,13 @@
         }
 
         [Fact]
-        public async Task IfState_WhenPredicateReturnsFalseAndCancelled_ReturnNullAndRunsCancelledAction()
+        public async Task IfElseRuntimeState_WhenPredicateReturnsFalseAndCancelled_ReturnNullAndRunsCancelledAction()
         {
             var tracker = new TestTracker();
 
             using (var cts = new CancellationTokenSource())
             {
-                var state = new IfRuntimeState(
+                var state = new IfElseRuntimeState(
                     "test",
                     tracker.StateEnterAction,
                     tracker.StateExitAction,

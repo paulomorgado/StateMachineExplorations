@@ -1,4 +1,4 @@
-﻿namespace Morgados.StateMachine.Runtime
+﻿namespace Morgados.StateMachines.Runtime
 {
     using System;
     using System.Diagnostics;
@@ -17,10 +17,10 @@
             Func<string, Task> onEnterAction,
             Func<string, Task> onExitAction,
             Func<string, Task> onCancelledAction,
-            RuntimeTransition initialSubState)
+            RuntimeTransition initialTransition)
             : base(name, onEnterAction, onExitAction, onCancelledAction)
         {
-            this.initialTransition = initialSubState;
+            this.initialTransition = initialTransition;
         }
 
         protected override async Task<RuntimeTransition> ExecuteEventStepAsync(CancellationToken cancellationToken)
