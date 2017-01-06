@@ -8,7 +8,8 @@
     [DebuggerDisplay(@"\{{Name}\}")]
     public abstract class RuntimeStateBase : ITransitionTarget
     {
-        private Task<RuntimeTransition> executingTask;
+        private const string ExecutingExceptionMessage = "Executing!";
+        private int isExecuting;
 
         protected RuntimeStateBase(
             string name,
@@ -32,41 +33,43 @@
 
         public async Task<RuntimeTransition> ExecuteAsync(CancellationToken cancellationToken)
         {
-            this.EnsureNotExcuting();
+            if (Interlocked.CompareExchange(ref this.isExecuting, 1, 0) == 1)
+            {
+                throw new InvalidOperationException(ExecutingExceptionMessage);
+            }
 
             if (cancellationToken.IsCancellationRequested)
             {
                 return null;
             }
 
-            this.executingTask = this.EnterAndExecuteAsync(cancellationToken);
-
-            var transition = await this.executingTask.ConfigureAwait(false);
-
-            return await ExitOrCancelAsync(cancellationToken) ? transition : null;
+            return await (await OnExecuteAsync(cancellationToken))();
         }
 
-        internal async Task<RuntimeTransition> EnterAndExecuteAsync(CancellationToken cancellationToken)
+        protected internal virtual async Task<Func<Task<RuntimeTransition>>> OnExecuteAsync(CancellationToken cancellationToken)
         {
             await this.EnterStepAsync(cancellationToken);
 
-            return !cancellationToken.IsCancellationRequested
-                ? await this.ExecuteLoopAsync(cancellationToken).ConfigureAwait(false)
-                : null;
-        }
-
-        internal async Task<bool> ExitOrCancelAsync(CancellationToken cancellationToken)
-        {
             if (cancellationToken.IsCancellationRequested)
             {
-                await this.CancelledStepAsync(cancellationToken).ConfigureAwait(false);
-                return false;
+                return () => Task.FromResult<RuntimeTransition>(null);
             }
-            else
-            {
-                await this.ExitStepAsync(cancellationToken).ConfigureAwait(false);
-                return true;
-            }
+
+            var transition = await this.ExecuteLoopAsync(cancellationToken).ConfigureAwait(false);
+
+            return async () =>
+               {
+                   if (cancellationToken.IsCancellationRequested)
+                   {
+                       await this.CancelledStepAsync(cancellationToken).ConfigureAwait(false);
+                       return null;
+                   }
+                   else
+                   {
+                       await this.ExitStepAsync(cancellationToken).ConfigureAwait(false);
+                       return transition;
+                   }
+               };
         }
 
         [DebuggerStepThrough]
@@ -123,18 +126,18 @@
         [DebuggerStepThrough]
         protected void EnsureNotExcuting()
         {
-            if (!(this.executingTask?.IsCompleted ?? true))
+            if (this.isExecuting == 1)
             {
-                throw new InvalidOperationException("Not executing!");
+                throw new InvalidOperationException(ExecutingExceptionMessage);
             }
         }
 
         [DebuggerStepThrough]
         protected void EnsureExcuting()
         {
-            if (this.executingTask?.IsCompleted ?? false)
+            if (this.isExecuting == 0)
             {
-                throw new InvalidOperationException("Executing!");
+                throw new InvalidOperationException("Not executing!");
             }
         }
 

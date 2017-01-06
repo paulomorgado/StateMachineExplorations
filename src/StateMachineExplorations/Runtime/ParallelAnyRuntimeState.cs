@@ -20,30 +20,23 @@
 
         protected override async Task<RuntimeTransition> ExecuteRegionsAsync(CancellationToken cancellationToken, IEnumerable<RuntimeStateBase> regions)
         {
-            using (var cancellationTokenSource = new CancellationTokenSource())
-            {
-                using (var combinedCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(
+            using (var cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(
                     cancellationToken,
-                    cancellationTokenSource.Token))
-                {
-                    var tasks = regions
-                        .Select(async s => 
-                            {
-                                await s.ExecuteAsync(combinedCancellationTokenSource.Token);
-                                return s;
-                            })
-                        .ToArray();
+                    CancellationToken.None))
+            {
+                var tasks = regions
+                    .Select(r => r.OnExecuteAsync(cancellationTokenSource.Token))
+                    .ToArray();
 
-                    var task = await Task.WhenAny(tasks);
+                var first = await Task.WhenAny(tasks);
 
-                    await (await task).ExitOrCancelAsync(cancellationToken);
+                var transition = await (await first)();
 
-                    combinedCancellationTokenSource.Cancel(true);
+                cancellationTokenSource.Cancel(true);
 
-                    await Task.WhenAll(
-                        (await Task.WhenAll(tasks.Where(t => t != task)))
-                        .Select(s => s.ExitOrCancelAsync(combinedCancellationTokenSource.Token)));
-                }
+                await Task.WhenAll(
+                    tasks
+                        .Select(async t => await (await t)()));
             }
 
             return null;

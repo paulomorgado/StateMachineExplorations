@@ -105,28 +105,16 @@
             return runtimeState is ChoiceRuntimeStateBase;
         }
 
-        private static RuntimeTransition BuildRuntimeTransition_(TransitionBase transitionBase, IEnumerable<RuntimeStateBase> runtimeStates)
+        private static RuntimeTransition BuildRuntimeTransition(TransitionBase transitionBase, IEnumerable<RuntimeStateBase> runtimeStates)
         {
             switch (transitionBase)
             {
                 case Transition transition:
-                    return new RuntimeTransition(
-                        transition.Name,
-                        runtimeStates?.Single(s => s.Name == transition.Target.Name),
-                        transition.Action,
-                        null);
+                    return BuildRuntimeTransition(runtimeStates, transition);
                 case InternalTransition transition:
-                    return new RuntimeTransition(
-                        transition.Name,
-                        null,
-                        transition.Action,
-                        transition.Guard);
+                    return BuildInternalRuntimeTransition(transition);
                 case ExternalTransition transition:
-                    return new RuntimeTransition(
-                        transition.Name,
-                        runtimeStates?.Single(s => s.Name == transition.Target.Name),
-                        transition.Action,
-                        transition.Guard);
+                    return BuildExternalRuntimeTransition(runtimeStates, transition);
                 default:
                     throw new ArgumentOutOfRangeException(
                         nameof(transitionBase),
@@ -134,45 +122,31 @@
             }
         }
 
-        private static RuntimeTransition BuildRuntimeTransition(TransitionBase transitionBase, IEnumerable<RuntimeStateBase> runtimeStates)
+        private static RuntimeTransition BuildExternalRuntimeTransition(IEnumerable<RuntimeStateBase> runtimeStates, ExternalTransition transition)
         {
-            if (transitionBase != null)
-            {
-                {
-                    if (transitionBase is Transition transition)
-                    {
-                        return new RuntimeTransition(
-                            transition.Name,
-                            runtimeStates?.Single(s => s.Name == transition.Target.Name),
-                            transition.Action,
-                            null);
-                    }
-                }
+            return new RuntimeTransition(
+                transition.Name,
+                runtimeStates?.Single(s => s.Name == transition.Target.Name),
+                transition.Action,
+                transition.Guard);
+        }
 
-                {
-                    if (transitionBase is InternalTransition transition)
-                    {
-                        return new RuntimeTransition(
-                            transition.Name,
-                            null,
-                            transition.Action,
-                            transition.Guard);
-                    }
-                }
+        private static RuntimeTransition BuildInternalRuntimeTransition(InternalTransition transition)
+        {
+            return new RuntimeTransition(
+                transition.Name,
+                null,
+                transition.Action,
+                transition.Guard);
+        }
 
-                {
-                    if (transitionBase is ExternalTransition transition)
-                    {
-                        return new RuntimeTransition(
-                            transition.Name,
-                            runtimeStates?.Single(s => s.Name == transition.Target.Name),
-                            transition.Action,
-                            transition.Guard);
-                    }
-                }
-            }
-
-            throw new ArgumentOutOfRangeException("transitionBase", string.Format("Invalid transition type: {0}", transitionBase.GetType().FullName));
+        private static RuntimeTransition BuildRuntimeTransition(IEnumerable<RuntimeStateBase> runtimeStates, Transition transition)
+        {
+            return new RuntimeTransition(
+                transition.Name,
+                runtimeStates?.Single(s => s.Name == transition.Target.Name),
+                transition.Action,
+                null);
         }
 
         private static SwitchRuntimeState<T> BuildRuntimeSwitchState<T>(SwitchState<T> switchState, IEnumerable<RuntimeStateBase> runtimeStates)

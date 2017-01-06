@@ -22,7 +22,7 @@
         {
         }
 
-        public async Task<bool? > PublishEventAsync(string eventName)
+        public async Task<bool?> PublishEventAsync(string eventName)
         {
             this.EnsureExcuting();
 
@@ -65,32 +65,24 @@
             return false;
         }
 
-        protected override sealed async Task<RuntimeTransition> ExecuteStepAsync(CancellationToken cancellationToken)
+        protected internal override async Task<Func<Task<RuntimeTransition>>> OnExecuteAsync(CancellationToken cancellationToken)
         {
             if (this.transitions.Count == 0)
             {
-                return await this.ExecuteEventStepAsync(cancellationToken).ConfigureAwait(false);
+                return await base.OnExecuteAsync(cancellationToken).ConfigureAwait(false);
             }
 
-            this.cancellationTokenSource = new CancellationTokenSource();
-            var combinedCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(
+            this.cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(
                 cancellationToken,
-                this.cancellationTokenSource.Token);
+                CancellationToken.None);
 
-            var currentCancellationToken = combinedCancellationTokenSource.Token;
+            var currentCancellationToken = this.cancellationTokenSource.Token;
 
             Interlocked.Exchange(ref this.eventChannel, new EventChannel<RuntimeTransition>());
 
             try
             {
-                currentCancellationToken.Register(() =>
-                    {
-                        var eventChannel = this.eventChannel;
-                        Interlocked.Exchange(ref this.eventChannel, null);
-                        eventChannel?.Acknowledge(null);
-                    });
-
-                return await this.ExecuteStepWithTransitionsAsync(currentCancellationToken).ConfigureAwait(false);
+                return await this.OnExecuteAsync(currentCancellationToken).ConfigureAwait(false);
             }
             finally
             {
@@ -98,11 +90,19 @@
                 Interlocked.Exchange(ref this.eventChannel, null);
                 eventChannel?.Acknowledge(null);
 
-                combinedCancellationTokenSource.Dispose();
-
                 this.cancellationTokenSource.Dispose();
                 this.cancellationTokenSource = null;
             }
+        }
+
+        protected override sealed async Task<RuntimeTransition> ExecuteStepAsync(CancellationToken cancellationToken)
+        {
+            if (this.transitions.Count == 0)
+            {
+                return await this.ExecuteEventStepAsync(cancellationToken).ConfigureAwait(false);
+            }
+
+            return await this.ExecuteStepWithTransitionsAsync(cancellationToken).ConfigureAwait(false);
         }
 
         private async Task<RuntimeTransition> ExecuteStepWithTransitionsAsync(CancellationToken cancellationToken)
@@ -134,6 +134,7 @@
                 {
                     var transition = await eventTask.ConfigureAwait(false);
                     this.eventChannel.Acknowledge(true);
+                    this.cancellationTokenSource.Cancel();
                     return transition;
                 }
             }
