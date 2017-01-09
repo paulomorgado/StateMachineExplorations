@@ -15,7 +15,7 @@
 
         public IEnumerator<KeyValuePair<string, GuardedTransitionBase>> GetEnumerator()
         {
-            foreach (var key in transitionsDictionary.Keys)
+            foreach (var key in this.transitionsDictionary.Keys)
             {
                 if (this.transitionsDictionary.TryGetValue(key, out var transitionsCollection))
                 {

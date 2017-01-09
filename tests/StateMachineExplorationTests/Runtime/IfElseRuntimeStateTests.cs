@@ -1,5 +1,6 @@
 ﻿namespace Morgados.StateMachineExploration.Tests.Runtime
 {
+    using System;
     using System.Threading;
     using System.Threading.Tasks;
     using FakeItEasy;
@@ -9,7 +10,7 @@
     public class IfElseRuntimeStateTests
     {
         [Fact]
-        public async Task IfElseRuntimeState_WhenPredicateReturnsTrue_ReturnsTrueTransition()
+        public async Task ExecuteAsync_WhenPredicateReturnsTrue_ReturnsTrueTransition()
         {
             var tracker = new TestTracker();
 
@@ -20,7 +21,7 @@
                 "test",
                 tracker.StateEnterAction,
                 tracker.StateExitAction,
-                tracker.StateCancelledAction,
+                tracker.StateCanceledAction,
                 elseTransition,
                 trueTransition,
                 () => true);
@@ -31,7 +32,7 @@
         }
 
         [Fact]
-        public async Task IfElseRuntimeState_WhenPredicateReturnsFalse_ReturnsElseTransition()
+        public async Task ExecuteAsync_WhenPredicateReturnsFalse_ReturnsElseTransition()
         {
             var tracker = new TestTracker();
 
@@ -42,7 +43,7 @@
                 "test",
                 tracker.StateEnterAction,
                 tracker.StateExitAction,
-                tracker.StateCancelledAction,
+                tracker.StateCanceledAction,
                 elseTransition,
                 trueTransition,
                 () => false);
@@ -53,7 +54,7 @@
         }
 
         [Fact]
-        public async Task IfElseRuntimeState_WhenPredicateReturnsTrueAndCancelled_ReturnNullAndRunsCancelledAction()
+        public async Task ExecuteAsync_WhenPredicateReturnsTrueAndCanceled_RunsCanceledActionAndThrowsOperationCanceledException()
         {
             var tracker = new TestTracker();
 
@@ -63,21 +64,23 @@
                     "test",
                     tracker.StateEnterAction,
                     tracker.StateExitAction,
-                    tracker.StateCancelledAction,
+                    tracker.StateCanceledAction,
                     new RuntimeTransition("True", null, null, null),
                     new RuntimeTransition("False", null, null, null),
-                    () => { cts.Cancel(); return true; });
+                    () =>
+                    {
+                        cts.Cancel();
+                        return true;
+                    });
 
-                var actual = await state.ExecuteAsync(cts.Token);
-
-                Assert.Null(actual);
+                await Assert.ThrowsAsync<OperationCanceledException>(async () => await state.ExecuteAsync(cts.Token));
             }
 
             Assert.Equal(">test;!test;", tracker.ToString());
         }
 
         [Fact]
-        public async Task IfElseRuntimeState_WhenPredicateReturnsFalseAndCancelled_ReturnNullAndRunsCancelledAction()
+        public async Task ExecuteAsync_WhenPredicateReturnsFalseAndCanceled_RunsCanceledActionAndThrowsOperationCanceledException()
         {
             var tracker = new TestTracker();
 
@@ -87,14 +90,16 @@
                     "test",
                     tracker.StateEnterAction,
                     tracker.StateExitAction,
-                    tracker.StateCancelledAction,
+                    tracker.StateCanceledAction,
                     new RuntimeTransition("True", null, null, null),
                     new RuntimeTransition("False", null, null, null),
-                    () => { cts.Cancel(); return false; });
+                    () =>
+                    {
+                        cts.Cancel();
+                        return false;
+                    });
 
-                var actual = await state.ExecuteAsync(cts.Token);
-
-                Assert.Null(actual);
+                await Assert.ThrowsAsync<OperationCanceledException>(async () => await state.ExecuteAsync(cts.Token));
             }
 
             Assert.Equal(">test;!test;", tracker.ToString());

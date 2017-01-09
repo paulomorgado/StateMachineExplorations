@@ -14,16 +14,16 @@
             string name,
             Func<string, Task> onEnterAction,
             Func<string, Task> onExitAction,
-            Func<string, Task> onCancelledAction,
+            Func<string, Task> onCanceledAction,
             IEnumerable<RuntimeStateBase> regions)
-            : base(name, onEnterAction, onExitAction, onCancelledAction)
+            : base(name, onEnterAction, onExitAction, onCanceledAction)
         {
             this.regions = regions;
         }
 
         protected override async Task<RuntimeTransition> ExecuteEventStepAsync(CancellationToken cancellationToken)
         {
-            return await ExecuteRegionsAsync(cancellationToken, this.regions);
+            return await this.ExecuteRegionsAsync(cancellationToken, this.regions);
         }
 
         protected abstract Task<RuntimeTransition> ExecuteRegionsAsync(CancellationToken cancellationToken, IEnumerable<RuntimeStateBase> regions);

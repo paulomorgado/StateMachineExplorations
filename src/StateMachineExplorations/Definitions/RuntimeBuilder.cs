@@ -33,7 +33,7 @@
                         ifElseState.Name,
                         ifElseState.OnEnterAction,
                         ifElseState.OnExitAction,
-                        ifElseState.OnCancelledAction,
+                        ifElseState.OnCanceledAction,
                         BuildRuntimeTransition(ifElseState.ElseTransition, runtimeStates),
                         BuildRuntimeTransition(ifElseState.TrueTransition, runtimeStates),
                         ifElseState.Predicate);
@@ -45,14 +45,14 @@
                         simpleState.OnEnterAction,
                         simpleState.OnExecuteAction,
                         simpleState.OnExitAction,
-                        simpleState.OnCancelledAction);
+                        simpleState.OnCanceledAction);
                 case CompositeState compositeState:
                     var subStates = compositeState.SubStates.Select(s => BuildRuntimeState(s)).ToList();
                     var compositeRuntimeState = new CompositeRuntimeState(
                         compositeState.Name,
                         compositeState.OnEnterAction,
                         compositeState.OnExitAction,
-                        compositeState.OnCancelledAction,
+                        compositeState.OnCanceledAction,
                         BuildRuntimeTransition(compositeState.InitialTransition, subStates));
                     foreach (var pair in compositeState.Transitions)
                     {
@@ -68,14 +68,14 @@
                         parallelState.Name,
                         parallelState.OnEnterAction,
                         parallelState.OnExitAction,
-                        parallelState.OnCancelledAction,
+                        parallelState.OnCanceledAction,
                         parallelState.Regions.Select(r => BuildRuntimeState(r)));
                 case ParallelState parallelState when parallelState.Mode == ParallelModes.Any:
                     return new ParallelAnyRuntimeState(
                         parallelState.Name,
                         parallelState.OnEnterAction,
                         parallelState.OnExitAction,
-                        parallelState.OnCancelledAction,
+                        parallelState.OnCanceledAction,
                         parallelState.Regions.Select(r => BuildRuntimeState(r)));
                 default:
                     throw new ArgumentOutOfRangeException(nameof(state), $"Invalid state type: {state.GetType().FullName}");
@@ -165,7 +165,7 @@
                 switchState.Name,
                 switchState.OnEnterAction,
                 switchState.OnExitAction,
-                switchState.OnCancelledAction,
+                switchState.OnCanceledAction,
                 BuildRuntimeTransition(switchState.ElseTransition, runtimeStates),
                 selectionTransitions,
                 switchState.Selector);

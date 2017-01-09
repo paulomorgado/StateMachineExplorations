@@ -1,5 +1,6 @@
 ﻿namespace Morgados.StateMachineExploration.Tests.Runtime
 {
+    using System;
     using System.Threading;
     using System.Threading.Tasks;
     using FakeItEasy;
@@ -9,7 +10,7 @@
     public class ChoiceRuntimeStateBaseTests
     {
         [Fact]
-        public async Task ChoiceRuntimeStateBase_WithSelectedTransitionAndNotCancelled_ReturnsSelectedTransitionAndRunsEnterAndExitActions()
+        public async Task ExecuteAsync_WithSelectedTransitionAndNotCanceled_ReturnsSelectedTransitionAndRunsEnterAndExitActions()
         {
             var tracker = new TestTracker();
 
@@ -23,7 +24,7 @@
                             "test",
                             tracker.StateEnterAction,
                             tracker.StateExitAction,
-                            tracker.StateCancelledAction,
+                            tracker.StateCanceledAction,
                             elseTransition,
                         })
                     .CallsBaseMethods());
@@ -41,7 +42,7 @@
         }
 
         [Fact]
-        public async Task ChoiceRuntimeStateBase_WithoutSelectedTransitionAndNotCancelled_ReturnElseTransitionAndRunsEnterAndExitActions()
+        public async Task ExecuteAsync_WithoutSelectedTransitionAndNotCanceled_ReturnElseTransitionAndRunsEnterAndExitActions()
         {
             var tracker = new TestTracker();
 
@@ -54,7 +55,7 @@
                             "test",
                             tracker.StateEnterAction,
                             tracker.StateExitAction,
-                            tracker.StateCancelledAction,
+                            tracker.StateCanceledAction,
                             elseTransition,
                         })
                     .CallsBaseMethods());
@@ -72,7 +73,7 @@
         }
 
         [Fact]
-        public async Task ChoiceRuntimeStateBase_WithSelectedTransitionAndCancelled_ReturnNullAndRunsCancelledAction()
+        public async Task ExecuteAsync_WithSelectedTransitionAndCanceled_RunsCanceledActionAndThrowsOperationCanceledException()
         {
             var tracker = new TestTracker();
 
@@ -88,35 +89,28 @@
                                 "test",
                                 tracker.StateEnterAction,
                                 tracker.StateExitAction,
-                                tracker.StateCancelledAction,
+                                tracker.StateCanceledAction,
                                 elseTransition,
                             })
                         .CallsBaseMethods());
 
-                // TODO: FakeItEasy bug
-                //A.CallTo(state)
-                //    .Where(call => call.Method.Name == "ExecuteStepAsync")
-                //    .WithReturnType<Task<Transition>>()
-                //    .Invokes(() => cts.Cancel())
-                //    .CallsBaseMethod();
-
                 A.CallTo(state)
                     .Where(call => call.Method.Name == "SelectTransition")
                     .WithReturnType<RuntimeTransition>()
-                    // TODO: FakeItEasy bug
-                    //.Returns(selectedTransition);
-                    .ReturnsLazily(() => { cts.Cancel(); return selectedTransition; });
+                    .ReturnsLazily(() =>
+                    {
+                        cts.Cancel();
+                        return selectedTransition;
+                    });
 
-                var actual = await state.ExecuteAsync(cts.Token);
-
-                Assert.Null(actual);
+                await Assert.ThrowsAsync<OperationCanceledException>(async () => await state.ExecuteAsync(cts.Token));
             }
 
             Assert.Equal(">test;!test;", tracker.ToString());
         }
 
         [Fact]
-        public async Task ChoiceRuntimeStateBase_WithoutSelectedTransitionAndCancelled_ReturnNullAndRunsCancelledAction()
+        public async Task ExecuteAsync_WithoutSelectedTransitionAndCanceled_RunsCanceledActionAndThrowsOperationCanceledException()
         {
             var tracker = new TestTracker();
 
@@ -129,27 +123,21 @@
                                 "test",
                                 tracker.StateEnterAction,
                                 tracker.StateExitAction,
-                                tracker.StateCancelledAction,
+                                tracker.StateCanceledAction,
                                 new RuntimeTransition("Else", A.Fake<ITransitionTarget>(), tracker.TransitionAction, null),
                             })
                         .CallsBaseMethods());
 
-                // TODO: FakeItEasy bug
-                //A.CallTo(state)
-                //    .Where(call => call.Method.Name == "ExecuteStepAsync")
-                //    .WithReturnType<Task<Transition>>()
-                //    .Invokes(() => cts.Cancel())
-                //    .CallsBaseMethod();
-
-                // TODO: FakeItEasy bug
                 A.CallTo(state)
                     .Where(call => call.Method.Name == "SelectTransition")
                     .WithReturnType<RuntimeTransition>()
-                    .ReturnsLazily(() => { cts.Cancel(); return (RuntimeTransition)null; });
+                    .ReturnsLazily(() =>
+                    {
+                        cts.Cancel();
+                        return null;
+                    });
 
-                var actual = await state.ExecuteAsync(cts.Token);
-
-                Assert.Null(actual);
+                await Assert.ThrowsAsync<OperationCanceledException>(async () => await state.ExecuteAsync(cts.Token));
             }
 
             Assert.Equal(">test;!test;", tracker.ToString());

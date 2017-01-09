@@ -12,9 +12,9 @@
             string name,
             Func<string, Task> onEnterAction,
             Func<string, Task> onExitAction,
-            Func<string, Task> onCancelledAction,
+            Func<string, Task> onCanceledAction,
             IEnumerable<RuntimeStateBase> regions)
-            : base(name, onEnterAction, onExitAction, onCancelledAction, regions)
+            : base(name, onEnterAction, onExitAction, onCanceledAction, regions)
         {
         }
 

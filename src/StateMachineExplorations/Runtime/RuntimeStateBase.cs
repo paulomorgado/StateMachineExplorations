@@ -15,12 +15,12 @@
             string name,
             Func<string, Task> onEnterAction,
             Func<string, Task> onExitAction,
-            Func<string, Task> onCancelledAction)
+            Func<string, Task> onCanceledAction)
         {
             this.Name = name;
             this.OnEnterAction = onEnterAction;
             this.OnExitAction = onExitAction;
-            this.OnCancelledAction = onCancelledAction;
+            this.OnCanceledAction = onCanceledAction;
         }
 
         public string Name { get; }
@@ -29,7 +29,7 @@
 
         public Func<string, Task> OnExitAction { get; }
 
-        public Func<string, Task> OnCancelledAction { get; }
+        public Func<string, Task> OnCanceledAction { get; }
 
         public async Task<RuntimeTransition> ExecuteAsync(CancellationToken cancellationToken)
         {
@@ -38,37 +38,42 @@
                 throw new InvalidOperationException(ExecutingExceptionMessage);
             }
 
-            if (cancellationToken.IsCancellationRequested)
+            try
             {
-                return null;
-            }
+                cancellationToken.ThrowIfCancellationRequested();
 
-            return await (await OnExecuteAsync(cancellationToken))();
+                var transition = await (await this.OnExecuteAsync(cancellationToken))();
+
+                cancellationToken.ThrowIfCancellationRequested();
+
+                return transition;
+            }
+            finally
+            {
+                Interlocked.Exchange(ref this.isExecuting, 0);
+            }
         }
 
         protected internal virtual async Task<Func<Task<RuntimeTransition>>> OnExecuteAsync(CancellationToken cancellationToken)
         {
             await this.EnterStepAsync(cancellationToken);
 
-            if (cancellationToken.IsCancellationRequested)
-            {
-                return () => Task.FromResult<RuntimeTransition>(null);
-            }
-
-            var transition = await this.ExecuteLoopAsync(cancellationToken).ConfigureAwait(false);
+            var transition = cancellationToken.IsCancellationRequested
+                ? null
+                : await this.ExecuteLoopAsync(cancellationToken).ConfigureAwait(false);
 
             return async () =>
                {
                    if (cancellationToken.IsCancellationRequested)
                    {
-                       await this.CancelledStepAsync(cancellationToken).ConfigureAwait(false);
-                       return null;
+                       await this.CanceledStepAsync(cancellationToken).ConfigureAwait(false);
                    }
                    else
                    {
                        await this.ExitStepAsync(cancellationToken).ConfigureAwait(false);
-                       return transition;
                    }
+
+                   return transition;
                };
         }
 
@@ -108,13 +113,13 @@
         }
 
         [DebuggerStepThrough]
-        protected virtual async Task CancelledStepAsync(CancellationToken cancellationToken)
+        protected virtual async Task CanceledStepAsync(CancellationToken cancellationToken)
         {
-            if (this.OnCancelledAction != null)
+            if (this.OnCanceledAction != null)
             {
                 try
                 {
-                    await this.OnCancelledAction(this.Name);
+                    await this.OnCanceledAction(this.Name);
                 }
                 catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
                 {

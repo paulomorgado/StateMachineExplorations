@@ -17,8 +17,8 @@
             string name,
             Func<string, Task> onEnterAction,
             Func<string, Task> onExitAction,
-            Func<string, Task> onCancelledAction)
-            : base(name, onEnterAction, onExitAction, onCancelledAction)
+            Func<string, Task> onCanceledAction)
+            : base(name, onEnterAction, onExitAction, onCanceledAction)
         {
         }
 
@@ -82,7 +82,7 @@
 
             try
             {
-                return await this.OnExecuteAsync(currentCancellationToken).ConfigureAwait(false);
+                return await base.OnExecuteAsync(currentCancellationToken).ConfigureAwait(false);
             }
             finally
             {

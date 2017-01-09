@@ -20,7 +20,7 @@
             {
                 OnEnterAction = tracker.StateEnterAction,
                 OnExitAction = tracker.StateExitAction,
-                OnCancelledAction = tracker.StateCancelledAction,
+                OnCanceledAction = tracker.StateCanceledAction,
                 Predicate = () => predicateValue,
                 ElseTransition = new Transition("else")
                 {
@@ -41,14 +41,14 @@
                     OnEnterAction = tracker.StateEnterAction,
                     OnExecuteAction = tracker.StateExecutionAction,
                     OnExitAction = tracker.StateExitAction,
-                    OnCancelledAction = tracker.StateCancelledAction,
+                    OnCanceledAction = tracker.StateCanceledAction,
                 }.BuildRuntimeState(),
                 new SimpleState("state2")
                 {
                     OnEnterAction = tracker.StateEnterAction,
                     OnExecuteAction = tracker.StateExecutionAction,
                     OnExitAction = tracker.StateExitAction,
-                    OnCancelledAction = tracker.StateCancelledAction,
+                    OnCanceledAction = tracker.StateCanceledAction,
                 }.BuildRuntimeState(),
             };
 

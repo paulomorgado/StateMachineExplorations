@@ -1,5 +1,6 @@
 ﻿namespace Morgados.StateMachineExploration.Tests.Runtime
 {
+    using System;
     using System.Collections.Generic;
     using System.Threading;
     using System.Threading.Tasks;
@@ -11,7 +12,7 @@
     public class SwitchRuntimeStateTests
     {
         [Fact]
-        public async Task SwitchRuntimeState_WhenSelectorReturnsExistingOption_ReturnsTransitionForOption()
+        public async Task ExecuteAsync_WhenSelectorReturnsExistingOption_ReturnsTransitionForOption()
         {
             var tracker = new TestTracker();
 
@@ -22,7 +23,7 @@
                 "test",
                 tracker.StateEnterAction,
                 tracker.StateExitAction,
-                tracker.StateCancelledAction,
+                tracker.StateCanceledAction,
                 elseTransition,
                 new Dictionary<int, RuntimeTransition>
                 {
@@ -38,7 +39,7 @@
         }
 
         [Fact]
-        public async Task SwitchRuntimeState_WhenSelectorReturnsNonExistingOption_ReturnsElseTransition()
+        public async Task ExecuteAsync_WhenSelectorReturnsNonExistingOption_ReturnsElseTransition()
         {
             var tracker = new TestTracker();
 
@@ -48,7 +49,7 @@
                 "test",
                 tracker.StateEnterAction,
                 tracker.StateExitAction,
-                tracker.StateCancelledAction,
+                tracker.StateCanceledAction,
                 elseTransition,
                 new Dictionary<int, RuntimeTransition>(),
                 () => 2);
@@ -59,7 +60,7 @@
         }
 
         [Fact]
-        public async Task SwitchRuntimeState_WithSelectedTransitionAndCancelled_ReturnNullAndRunsCancelledAction()
+        public async Task ExecuteAsync_WithSelectedTransitionAndCanceled_RunsCanceledActionAndThrowsOperationCanceledException()
         {
             var tracker = new TestTracker();
 
@@ -69,7 +70,7 @@
                     "test",
                     tracker.StateEnterAction,
                     tracker.StateExitAction,
-                    tracker.StateCancelledAction,
+                    tracker.StateCanceledAction,
                     new RuntimeTransition("False", A.Fake<ITransitionTarget>(), null, null),
                     new Dictionary<int, RuntimeTransition>
                     {
@@ -77,18 +78,20 @@
                         { 1, new RuntimeTransition("1", A.Fake<ITransitionTarget>(), null, null)},
                         { 2, new RuntimeTransition("2", null, null, null) },
                     },
-                    () => { cts.Cancel(); return 1; });
+                    () =>
+                    {
+                        cts.Cancel();
+                        return 1;
+                    });
 
-                var actual = await state.ExecuteAsync(cts.Token);
-
-                Assert.Null(actual);
+                await Assert.ThrowsAsync<OperationCanceledException>(async () => await state.ExecuteAsync(cts.Token));
             }
 
             Assert.Equal(">test;!test;", tracker.ToString());
         }
 
         [Fact]
-        public async Task SwitchRuntimeState_WithoutSelectedTransitionAndCancelled_ReturnNullAndRunsCancelledAction()
+        public async Task ExecuteAsync_WithoutSelectedTransitionAndCanceled_RunsCanceledActionAndThrowsOperationCanceledException()
         {
             var tracker = new TestTracker();
 
@@ -98,14 +101,16 @@
                     "test",
                     tracker.StateEnterAction,
                     tracker.StateExitAction,
-                    tracker.StateCancelledAction,
+                    tracker.StateCanceledAction,
                     new RuntimeTransition("False", A.Fake<ITransitionTarget>(), null, null),
                     new Dictionary<int, RuntimeTransition>(),
-                    () => { cts.Cancel(); return 2; });
+                    () =>
+                    {
+                        cts.Cancel();
+                        return 2;
+                    });
 
-                var actual = await state.ExecuteAsync(cts.Token);
-
-                Assert.Null(actual);
+                await Assert.ThrowsAsync<OperationCanceledException>(async () => await state.ExecuteAsync(cts.Token));
             }
 
             Assert.Equal(">test;!test;", tracker.ToString());

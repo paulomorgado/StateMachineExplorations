@@ -9,7 +9,7 @@
     public class SimpleRuntimeStateTests
     {
         [Fact]
-        public async Task SimpleRuntimeState_WithoutTransitions_CompletesImmediatelly()
+        public async Task ExecuteAsync_WithoutTransitions_CompletesImmediatelly()
         {
             var tracker = new TestTracker();
 
@@ -18,7 +18,7 @@
                 tracker.StateEnterAction,
                 tracker.StateExecutionAction,
                 tracker.StateExitAction,
-                tracker.StateCancelledAction);
+                tracker.StateCanceledAction);
 
             await state.ExecuteAsync(CancellationToken.None);
 
@@ -26,28 +26,34 @@
         }
 
         [Fact]
-        public async Task SimpleRuntimeState_WithCancellationWithoutTransitions_CompletesImmediatellyAndRunsCancelledActionAndThrows()
+        public async Task ExecuteAsync_WithCancellationWithoutTransitions_CompletesImmediatellyAndRunsCanceledActionAndThrowsOperationCanceledException()
         {
-            var cts = new CancellationTokenSource();
-            var tcs = new TaskCompletionSource<object>();
+            using (var cts = new CancellationTokenSource())
+            {
+                var tcs = new TaskCompletionSource<object>();
 
-            var tracker = new TestTracker();
+                var tracker = new TestTracker();
 
-            var state = new SimpleRuntimeState(
-                "test",
-                tracker.StateEnterAction,
-                async s => { await tracker.StateExecutionAction(s); await tcs.Task; },
-                tracker.StateExitAction,
-                tracker.StateCancelledAction);
+                var state = new SimpleRuntimeState(
+                    "test",
+                    tracker.StateEnterAction,
+                    async s =>
+                    {
+                        await tracker.StateExecutionAction(s);
+                        await tcs.Task;
+                    },
+                    tracker.StateExitAction,
+                    tracker.StateCanceledAction);
 
-            Task<RuntimeTransition> task = state.ExecuteAsync(cts.Token);
+                var task = state.ExecuteAsync(cts.Token);
 
-            cts.Cancel();
-            tcs.SetResult(null);
+                cts.Cancel();
+                tcs.SetResult(null);
 
-            Assert.ThrowsAsync<OperationCanceledException>(async () => await task);
+                await Assert.ThrowsAsync<OperationCanceledException>(async () => await task);
 
-            Assert.Equal(">test;*test;!test;", tracker.ToString());
+                Assert.Equal(">test;*test;!test;", tracker.ToString());
+            }
         }
     }
 }

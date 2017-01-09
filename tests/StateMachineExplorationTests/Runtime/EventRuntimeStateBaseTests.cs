@@ -13,15 +13,15 @@
     public class EventRuntimeStateBaseTests
     {
         [Fact]
-        public async Task EventRuntimeStateBase_TriggerWhenNotExecuting_ThrowsInvalidOperationException()
+        public async Task PublishEventAsync_WhenNotExecuting_ThrowsInvalidOperationException()
         {
             var state = new Mock<EventRuntimeStateBase>("test", null, null, null).Object;
 
-            Assert.ThrowsAsync<InvalidOperationException>(async () => await state.PublishEventAsync(null));
+            await Assert.ThrowsAsync<InvalidOperationException>(async () => await state.PublishEventAsync(null));
         }
 
         [Fact]
-        public async Task EventStateBaseWithoutEventTransitions_WithoutCancellation_ReturnsReturnValueOfExecuteEventStepAsync()
+        public async Task ExecuteAsync_WithoutEventTransitionsNotCanceled_ReturnsReturnValueOfExecuteEventStepAsync()
         {
             var tracker = new TestTracker();
 
@@ -35,7 +35,7 @@
                         "test",
                         tracker.StateEnterAction,
                         tracker.StateExitAction,
-                        tracker.StateCancelledAction,
+                        tracker.StateCanceledAction,
                       });
 
                     x.CallsBaseMethods();
@@ -69,7 +69,7 @@
         }
 
         [Fact]
-        public async Task EventStateBaseWithEventTransitions_WithoutCancellationWithTriggeredEventTransition_ReturnsEventTransitionAndAcknowledgesHandledEvent()
+        public async Task ExecuteAsync_WithEventTransitionsNotCanceledWithTriggeredEventTransition_ReturnsEventTransitionAndAcknowledgesHandledEvent()
         {
             var tracker = new TestTracker();
 
@@ -86,7 +86,7 @@
                         "test",
                         tracker.StateEnterAction,
                         tracker.StateExitAction,
-                        tracker.StateCancelledAction,
+                        tracker.StateCanceledAction,
                       });
 
                     x.CallsBaseMethods();
@@ -126,7 +126,7 @@
         }
 
         [Fact]
-        public async Task EventStateBaseWithEventTransitions_WithoutCancellationWithoutTriggeredEventTransitionAndStateExecutionReturningNull_DoesntCompleteExecution()
+        public async Task ExecuteAsync_WithEventTransitionsNotCanceledWithoutTriggeredEventTransitionAndStateExecutionReturningNull_DoesntCompleteExecution()
         {
             var tracker = new TestTracker();
 
@@ -142,7 +142,7 @@
                         "test",
                         tracker.StateEnterAction,
                         tracker.StateExitAction,
-                        tracker.StateCancelledAction,
+                        tracker.StateCanceledAction,
                       });
 
                     x.CallsBaseMethods();
@@ -178,7 +178,7 @@
         }
 
         [Fact]
-        public async Task EventStateBaseWithEventTransitions_WithoutCancellationWithoutTriggeredEventTransitionAndStateExecutionReturningTargetedTransition_ReturnsReturnValueOfExecuteEventStepAsync()
+        public async Task ExecuteAsync_WithEventTransitionsNotCanceledWithoutTriggeredEventTransitionAndStateExecutionReturningTargetedTransition_ReturnsReturnValueOfExecuteEventStepAsync()
         {
             var tracker = new TestTracker();
 
@@ -195,7 +195,7 @@
                         "test",
                         tracker.StateEnterAction,
                         tracker.StateExitAction,
-                        tracker.StateCancelledAction,
+                        tracker.StateCanceledAction,
                       });
 
                     x.CallsBaseMethods();

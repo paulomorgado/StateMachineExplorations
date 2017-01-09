@@ -19,7 +19,7 @@
                 OnEnterAction = tracker.StateEnterAction,
                 OnExecuteAction = tracker.StateExecutionAction,
                 OnExitAction = tracker.StateExitAction,
-                OnCancelledAction = tracker.StateCancelledAction,
+                OnCanceledAction = tracker.StateCanceledAction,
             };
 
             await state

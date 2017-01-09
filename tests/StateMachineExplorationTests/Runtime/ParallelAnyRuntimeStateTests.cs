@@ -19,29 +19,41 @@
             var state1 = new SimpleRuntimeState(
                 "state1",
                 tracker.StateEnterAction,
-                async s => { await tracker.StateExecutionAction(s); await tcs1.Task; },
+                async s =>
+                {
+                    await tracker.StateExecutionAction(s);
+                    await tcs1.Task;
+                },
                 tracker.StateExitAction,
-                tracker.StateCancelledAction);
+                tracker.StateCanceledAction);
 
             var state2 = new SimpleRuntimeState(
                 "state2",
                 tracker.StateEnterAction,
-                async s => { await tracker.StateExecutionAction(s); await tcs2.Task; },
+                async s =>
+                {
+                    await tracker.StateExecutionAction(s);
+                    await tcs2.Task;
+                },
                 tracker.StateExitAction,
-                tracker.StateCancelledAction);
+                tracker.StateCanceledAction);
 
             var state3 = new SimpleRuntimeState(
                 "state3",
                 tracker.StateEnterAction,
-                async s => { await tracker.StateExecutionAction(s); await tcs3.Task; },
+                async s =>
+                {
+                    await tracker.StateExecutionAction(s);
+                    await tcs3.Task;
+                },
                 tracker.StateExitAction,
-                tracker.StateCancelledAction);
+                tracker.StateCanceledAction);
 
             var parallelState = new ParallelAnyRuntimeState(
                 "parallel",
                 tracker.StateEnterAction,
                 tracker.StateExitAction,
-                tracker.StateCancelledAction,
+                tracker.StateCanceledAction,
                 new RuntimeStateBase[] { state1, state2, state3 });
 
             var task = parallelState.ExecuteAsync(CancellationToken.None);

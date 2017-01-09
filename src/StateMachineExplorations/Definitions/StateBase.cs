@@ -22,7 +22,7 @@
 
         public Func<string, Task> OnExitAction { get; set; }
 
-        public Func<string, Task> OnCancelledAction { get; set; }
+        public Func<string, Task> OnCanceledAction { get; set; }
 
         public bool IsValid() => !this.Validate().Any();
 

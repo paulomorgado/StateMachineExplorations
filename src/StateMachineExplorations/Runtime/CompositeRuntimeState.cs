@@ -16,9 +16,9 @@
             string name,
             Func<string, Task> onEnterAction,
             Func<string, Task> onExitAction,
-            Func<string, Task> onCancelledAction,
+            Func<string, Task> onCanceledAction,
             RuntimeTransition initialTransition)
-            : base(name, onEnterAction, onExitAction, onCancelledAction)
+            : base(name, onEnterAction, onExitAction, onCanceledAction)
         {
             this.initialTransition = initialTransition;
         }

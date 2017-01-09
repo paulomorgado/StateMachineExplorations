@@ -19,27 +19,31 @@
                 tracker.StateEnterAction,
                 tracker.StateExecutionAction,
                 tracker.StateExitAction,
-                tracker.StateCancelledAction);
+                tracker.StateCanceledAction);
 
             var state2 = new SimpleRuntimeState(
                 "state2",
                 tracker.StateEnterAction,
-                async s => { await tracker.StateExecutionAction(s); tcs2.SetResult(null); },
+                async s =>
+                {
+                    await tracker.StateExecutionAction(s);
+                    tcs2.SetResult(null);
+                },
                 tracker.StateExitAction,
-                tracker.StateCancelledAction);
+                tracker.StateCanceledAction);
 
             var state3 = new SimpleRuntimeState(
                 "state3",
                 tracker.StateEnterAction,
                 tracker.StateExecutionAction,
                 tracker.StateExitAction,
-                tracker.StateCancelledAction);
+                tracker.StateCanceledAction);
 
             var compositeState = new CompositeRuntimeState(
                 "composite",
                 tracker.StateEnterAction,
                 tracker.StateExitAction,
-                tracker.StateCancelledAction,
+                tracker.StateCanceledAction,
                 new RuntimeTransition("T1", state1, tracker.TransitionAction, null));
 
             state1.AddEventTransition("E1", new RuntimeTransition("T2", state2, tracker.TransitionAction, null));
@@ -62,7 +66,7 @@
 
             await task;
 
-            Assert.Equal(">composite;@composite->state1;>state1;*state1;<state1;@state1->state2;>state2;*state2;<state2;@state2->state3;>state3;*state3;<state3;<composite;", tracker.ToString());
+            Assert.Equal(">composite;@composite->state1;>state1;*state1;!state1;@state1->state2;>state2;*state2;!state2;@state2->state3;>state3;*state3;<state3;<composite;", tracker.ToString());
         }
     }
 }

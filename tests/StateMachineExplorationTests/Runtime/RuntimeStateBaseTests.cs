@@ -10,7 +10,7 @@
     public class RuntimeStateBaseTests
     {
         [Fact]
-        public async Task RuntimeStateBase_WithoutCancellation_RunsEnterAndExitActions()
+        public async Task ExecuteAsync_WithoutCancellation_RunsEnterAndExitActions()
         {
             var tracker = new TestTracker();
 
@@ -20,7 +20,7 @@
                                 "test",
                                 tracker.StateEnterAction,
                                 tracker.StateExitAction,
-                                tracker.StateCancelledAction,
+                                tracker.StateCanceledAction,
                     })
                 .CallsBaseMethods());
 
@@ -30,7 +30,7 @@
         }
 
         [Fact]
-        public async Task RuntimeStateBase_WithoutCancellationAndNonTargettedTransitions_RunsEnterAndExecutesTransitionsUntilNullTransitionAndExitActionsAndReturnsNull()
+        public async Task ExecuteAsync_WithoutCancellationAndNonTargettedTransitions_RunsEnterAndExecutesTransitionsUntilNullTransitionAndExitActionsAndReturnsNull()
         {
             var tracker = new TestTracker();
 
@@ -43,7 +43,7 @@
                             "test",
                             tracker.StateEnterAction,
                             tracker.StateExitAction,
-                            tracker.StateCancelledAction,
+                            tracker.StateCanceledAction,
                         })
                     .CallsBaseMethods());
 
@@ -59,7 +59,7 @@
         }
 
         [Fact]
-        public async Task RuntimeStateBase_WithoutCancellationAndNonTargettedTransitions_RunsEnterAndExecutesTransitionsUntilTargettedTransitionAndExitActionsAndReturnsTargettedTransitionWithoutExecuting()
+        public async Task ExecuteAsync_WithoutCancellationAndNonTargettedTransitions_RunsEnterAndExecutesTransitionsUntilTargettedTransitionAndExitActionsAndReturnsTargettedTransitionWithoutExecuting()
         {
             var tracker = new TestTracker();
 
@@ -73,7 +73,7 @@
                             "test",
                             tracker.StateEnterAction,
                             tracker.StateExitAction,
-                            tracker.StateCancelledAction,
+                            tracker.StateCanceledAction,
                         })
                     .CallsBaseMethods());
 
@@ -89,7 +89,7 @@
         }
 
         [Fact]
-        public async Task RuntimeStateBase_WithCancellationBeforeExecution_RunsNodAction()
+        public async Task ExecuteAsync_CanceledBeforeExecution_RunsNodActionAndThrowsOperationCanceledException()
         {
             var tracker = new TestTracker();
 
@@ -104,18 +104,18 @@
                                 "test",
                                 tracker.StateEnterAction,
                                 tracker.StateExitAction,
-                                tracker.StateCancelledAction,
+                                tracker.StateCanceledAction,
                             })
                         .CallsBaseMethods());
 
-                await state.ExecuteAsync(cts.Token);
+                await Assert.ThrowsAsync<OperationCanceledException>(async () => await state.ExecuteAsync(cts.Token));
             }
 
             Assert.Equal(string.Empty, tracker.ToString());
         }
 
         [Fact]
-        public async Task RuntimeStateBase_WithCancellationDuringEnter_RunsEnterAndCancelledActions()
+        public async Task ExecuteAsync_CanceledDuringEnter_RunsEnterAndCanceledActionsAndThrowsOperationCanceledException()
         {
             var tracker = new TestTracker();
 
@@ -126,20 +126,24 @@
                         .WithArgumentsForConstructor(new object[]
                             {
                                 "test",
-                                new Func<string, Task>(async s => { await tracker.StateEnterAction(s); cts.Cancel(); }),
+                                new Func<string, Task>(async s =>
+                                {
+                                    await tracker.StateEnterAction(s);
+                                    cts.Cancel();
+                                }),
                                 tracker.StateExitAction,
-                                tracker.StateCancelledAction,
+                                tracker.StateCanceledAction,
                             })
                         .CallsBaseMethods());
 
-                await state.ExecuteAsync(cts.Token);
+                await Assert.ThrowsAsync<OperationCanceledException>(async () => await state.ExecuteAsync(cts.Token));
             }
 
             Assert.Equal(">test;!test;", tracker.ToString());
         }
 
         [Fact]
-        public async Task RuntimeStateBase_WithCancellationDuringExit_RunsEnterAndExitActions()
+        public async Task ExecuteAsync_CanceledDuringExit_RunsEnterAndExitActionsAndThrowsOperationCanceledException()
         {
             var tracker = new TestTracker();
 
@@ -151,19 +155,23 @@
                             {
                                 "test",
                                 tracker.StateEnterAction,
-                                new Func<string, Task>(async s => { await tracker.StateExitAction(s); cts.Cancel(); }),
-                                tracker.StateCancelledAction,
+                                new Func<string, Task>(async s =>
+                                {
+                                    await tracker.StateExitAction(s);
+                                    cts.Cancel();
+                                }),
+                                tracker.StateCanceledAction,
                             })
                         .CallsBaseMethods());
 
-                await state.ExecuteAsync(cts.Token);
+                await Assert.ThrowsAsync<OperationCanceledException>(async () => await state.ExecuteAsync(cts.Token));
             }
 
             Assert.Equal(">test;<test;", tracker.ToString());
         }
 
         [Fact]
-        public async Task RuntimeStateBase_WithCancellationDuringExecute_RunsEnterAndExitActions()
+        public async Task ExecuteAsync_WithCancellationDuringExecute_RunsEnterAndExitActionsAndThrowsOperationCanceledException()
         {
             var tracker = new TestTracker();
 
@@ -176,7 +184,7 @@
                                 "test",
                                 tracker.StateEnterAction,
                                 tracker.StateExitAction,
-                                tracker.StateCancelledAction,
+                                tracker.StateCanceledAction,
                             })
                         .CallsBaseMethods());
 
@@ -185,14 +193,14 @@
                     .WithReturnType<Task<RuntimeTransition>>()
                     .Invokes(() => cts.Cancel());
 
-                await state.ExecuteAsync(cts.Token);
+                await Assert.ThrowsAsync<OperationCanceledException>(async () => await state.ExecuteAsync(cts.Token));
             }
 
             Assert.Equal(">test;!test;", tracker.ToString());
         }
 
         [Fact]
-        public void RuntimeStateBase_ExecutingState_ThrowsInvalidOperationException()
+        public async Task ExecuteAsync_ExecutingState_ThrowsInvalidOperationExceptionAsync()
         {
             var tracker = new TestTracker();
 
@@ -205,7 +213,7 @@
                             "test",
                             tracker.StateEnterAction,
                             tracker.StateExitAction,
-                            tracker.StateCancelledAction,
+                            tracker.StateCanceledAction,
                         })
                     .CallsBaseMethods());
 
@@ -214,9 +222,13 @@
                 .WithReturnType<Task<RuntimeTransition>>()
                 .Returns(tcs.Task);
 
-            state.ExecuteAsync(CancellationToken.None);
+            var task = state.ExecuteAsync(CancellationToken.None);
 
-            Assert.ThrowsAsync<InvalidOperationException>(() => state.ExecuteAsync(CancellationToken.None));
+            await Assert.ThrowsAsync<InvalidOperationException>(() => state.ExecuteAsync(CancellationToken.None));
+
+            tcs.SetResult(null);
+
+            await task;
         }
     }
 }

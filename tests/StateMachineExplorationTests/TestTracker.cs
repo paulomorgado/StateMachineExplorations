@@ -25,7 +25,7 @@
                 return Task.CompletedTask;
             };
 
-            this.StateCancelledAction = s =>
+            this.StateCanceledAction = s =>
             {
                 this.builder
                     .Append("!")
@@ -70,7 +70,7 @@
             };
         }
 
-        public Func<string, Task> StateCancelledAction { get; }
+        public Func<string, Task> StateCanceledAction { get; }
 
         public Func<string, Task> StateEnterAction { get; }
 
