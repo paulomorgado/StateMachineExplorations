@@ -15,7 +15,7 @@
     <PackageReference Include="FakeItEasy" Version="3.0.0-beta002-build000066" />
     <PackageReference Include="FakeItEasy.Analyzer" Version="2.3.2" />
     <PackageReference Include="Microsoft.NETCore.App">
-      <Version>1.1.0</Version>
+      <Version>2.0.3</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.NET.Sdk">
       <Version>1.0.0-alpha-20161104-2</Version>
